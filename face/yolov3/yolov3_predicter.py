@@ -24,7 +24,7 @@ from core.model import yolo_eval, yolo_body
 from core.utils import letterbox_image
 
 
-class YOLO(object):
+class Yolov3Predictor(object):
     def __init__(self, model_path,
                  classes_path='configs/wider_classes.txt',
                  anchors_path='configs/yolo_anchors.txt'):
@@ -166,4 +166,4 @@ def detect_img_for_test(yolo):
 
 if __name__ == '__main__':
     model_path = os.path.join(MODEL_DATA, 'ep074-loss26.535-val_loss27.370.h5')
-    detect_img_for_test(YOLO(model_path=model_path))
+    detect_img_for_test(Yolov3Predictor(model_path=model_path))
