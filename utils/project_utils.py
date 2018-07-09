@@ -7,7 +7,7 @@ Created by C. L. Wang on 2018/7/9
 常用方法
 """
 
-from __future__ import absolute_import
+# from __future__ import absolute_import
 
 import collections
 import os
@@ -17,8 +17,8 @@ import sys
 import time
 from datetime import timedelta, datetime
 
-reload(sys)  # 重置系统参数
-sys.setdefaultencoding('utf8')  # 避免编码错误
+# reload(sys)  # 重置系统参数
+# sys.setdefaultencoding('utf8')  # 避免编码错误
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 if p not in sys.path:
@@ -83,11 +83,11 @@ def mkdir_if_not_exist(dir_name, is_delete=False):
         if is_delete:
             if os.path.exists(dir_name):
                 shutil.rmtree(dir_name)
-                print u'[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name
+                print '[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name
 
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
-            print u'[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name
+            print '[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name
         return True
     except Exception as e:
         print '[Exception] %s' % e
