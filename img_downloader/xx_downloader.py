@@ -24,6 +24,8 @@ def download_img(img_url, out_folder, imgs_names):
     """
     下载图片
     :param img_url: 图片URL
+    :param out_folder: 输出文件夹
+    :param imgs_names: 已有图片
     :return: None
     """
     img_name = img_url.split('/')[-1]  # 图片文件名
@@ -66,7 +68,7 @@ def download_imgs_for_mp(img_file, out_folder, n_prc=40):
     多线程下载
     :param img_file: 图片文件
     :param out_folder: 输出文件夹
-    :param n_thread: 线程数, 默认10个
+    :param n_prc: 进程数, 默认40个
     :return: None
     """
     print_info('进程总数: %s' % n_prc)
