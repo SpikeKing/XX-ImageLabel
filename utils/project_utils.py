@@ -57,6 +57,8 @@ def traverse_dir_files(root_dir, ext=None):
             else:
                 names_list.append(name)
                 paths_list.append(os.path.join(parent, name))
+    if not names_list:  # 文件夹为空
+        return paths_list, names_list
     paths_list, names_list = sort_two_list(paths_list, names_list)
     return paths_list, names_list
 

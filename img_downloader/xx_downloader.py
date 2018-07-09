@@ -6,7 +6,7 @@ Created by C. L. Wang on 2018/7/9
 """
 import argparse
 import os
-from multiprocessing.pool import ThreadPool
+from multiprocessing.pool import Pool
 
 import requests
 import sys
@@ -20,72 +20,68 @@ from utils.log_utils import print_info
 from utils.project_utils import *
 
 
-class ImgDownloader(object):
-    def __init__(self, out_folder=None):
-        """
-        构造器
-        :param out_folder: 图片存储文件夹
-        """
-        self.out_folder = out_folder
-        self.imgs_names = None  # 用于检测重复图片
-        pass
+def download_img(img_url, out_folder, imgs_names):
+    """
+    下载图片
+    :param img_url: 图片URL
+    :return: None
+    """
+    img_name = img_url.split('/')[-1]  # 图片文件名
 
-    def download_img(self, img_url):
-        """
-        下载图片
-        :param img_url: 图片URL
-        :return: None
-        """
-        img_name = img_url.split('/')[-1]  # 图片文件名
+    if img_name in imgs_names:
+        print_info('图片已存在: %s' % img_name)
+        return
 
-        if not self.imgs_names:
-            _, self.imgs_names = traverse_dir_files(self.out_folder)
+    img_data = requests.get(img_url).content
 
-        if img_name in self.imgs_names:
-            print_info('图片已存在: %s' % img_name)
-            return
+    out_file = os.path.join(out_folder, img_name)  # 输出文件
 
-        img_data = requests.get(img_url).content
+    with open(out_file, 'wb') as hl:
+        hl.write(img_data)
+        print_info('图片已下载: %s' % img_name)
 
-        out_file = os.path.join(self.out_folder, img_name)  # 输出文件
 
-        with open(out_file, 'wb') as hl:
-            hl.write(img_data)
-            print_info('图片已下载: %s' % img_name)
+def download_imgs(img_file, out_folder):
+    """
+    下载图片集合
+    :param img_file: 图片文件
+    :param out_folder: 文件夹
+    :return: None
+    """
+    paths_list = read_file(img_file)
+    print_info('图片总数: %s' % len(paths_list))
 
-    def download_imgs(self, img_file, out_folder):
-        """
-        下载图片集合
-        :param img_file: 图片文件
-        :param out_folder: 文件夹
-        :return: None
-        """
-        paths_list = read_file(img_file)
-        print_info('图片总数: %s' % len(paths_list))
-        count = 0
-        self.out_folder = out_folder  # 存储文件夹
-        for path in paths_list:
-            self.download_img(path)
-            count += 1
-            if count % 200 == 0:
-                print_info('已下载: %s' % count)
+    _, imgs_names = traverse_dir_files(out_folder)
 
-    def download_imgs_for_mp(self, img_file, out_folder, n_thread=10):
-        """
-        多线程下载
-        :param img_file: 图片文件
-        :param out_folder: 输出文件夹
-        :param n_thread: 线程数, 默认10个
-        :return: None
-        """
-        print_info('线程总数：%s' % n_thread)
-        pool = ThreadPool(n_thread)  # 多线程下载
-        paths_list = read_file(img_file)
-        self.out_folder = out_folder  # 存储文件夹
-        pool.map(self.download_img, paths_list)
-        pool.close()
-        pool.join()
-        print_info('全部下载完成')
+    count = 0
+    for path in paths_list:
+        download_img(path, out_folder, imgs_names)
+        count += 1
+        if count % 200 == 0:
+            print_info('已下载: %s' % count)
+
+
+def download_imgs_for_mp(img_file, out_folder, n_prc=40):
+    """
+    多线程下载
+    :param img_file: 图片文件
+    :param out_folder: 输出文件夹
+    :param n_thread: 线程数, 默认10个
+    :return: None
+    """
+    print_info('进程总数: %s' % n_prc)
+    pool = Pool(processes=n_prc)  # 多线程下载
+    paths_list = read_file(img_file)
+    print_info('文件数: %s' % len(paths_list))
+
+    _, imgs_names = traverse_dir_files(out_folder)
+
+    for path in paths_list:
+        pool.apply_async(download_img, (path, out_folder, imgs_names))
+
+    pool.close()
+    pool.join()
+    print_info('全部下载完成')
 
 
 def test_of_ImgDownloader():
@@ -95,8 +91,7 @@ def test_of_ImgDownloader():
     img_file = os.path.join(ROOT_DIR, 'img_downloader', 'urls', 'log明星')
     out_folder = os.path.join(ROOT_DIR, 'img_data', 'log明星')
     mkdir_if_not_exist(out_folder)  # 新建文件夹
-    ider = ImgDownloader()
-    ider.download_imgs(img_file, out_folder)
+    download_imgs(img_file, out_folder)
 
 
 def parse_args():
@@ -132,8 +127,7 @@ def main():
     """
     arg_img, arg_out = parse_args()
     mkdir_if_not_exist(arg_out)  # 新建文件夹
-    ider = ImgDownloader()
-    ider.download_imgs_for_mp(arg_img, arg_out)
+    download_imgs_for_mp(arg_img, arg_out)
 
 
 if __name__ == '__main__':
