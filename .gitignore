@@ -112,3 +112,5 @@ venv.bak/
 img_downloader/urls/
 img_data/
 
+face/yolov3/model_data/
+face/yolov3/output_data/
