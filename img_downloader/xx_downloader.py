@@ -81,6 +81,9 @@ def download_imgs_for_mp(img_file, out_folder, n_prc=40):
 
     pool.close()
     pool.join()
+
+    _, imgs_names = traverse_dir_files(out_folder)
+    print_info('图片总数: %s' % len(imgs_names))
     print_info('全部下载完成')
 
 
