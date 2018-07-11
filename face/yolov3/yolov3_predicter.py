@@ -6,7 +6,8 @@ Created by C. L. Wang on 2018/7/4
 """
 from face.yolov3.yolov3_dir import OUTPUT_DATA, MODEL_DATA
 from root_dir import IMG_DATA
-from utils.project_utils import mkdir_if_not_exist
+from utils.log_utils import print_info
+from utils.project_utils import mkdir_if_not_exist, traverse_dir_files
 
 """
 Run a YOLO_v3 style detection model on test images.
@@ -64,7 +65,7 @@ class Yolov3Predictor(object):
 
         # 加载模型参数
         self.yolo_model = yolo_body(Input(shape=(None, None, 3)), 3, num_classes)
-        self.yolo_model.load_weights(model_path)
+        self.yolo_model.load_weights(model_path)  # 核心模型
 
         print('{} model, {} anchors, and {} classes loaded.'.format(model_path, num_anchors, num_classes))
 
@@ -93,8 +94,9 @@ class Yolov3Predictor(object):
         else:
             new_image_size = (image.width - (image.width % 32), image.height - (image.height % 32))
             boxed_image = letterbox_image(image, new_image_size)
+
         image_data = np.array(boxed_image, dtype='float32')
-        print('detector size {}'.format(image_data.shape))
+        # print('detector size {}'.format(image_data.shape))
         image_data /= 255.  # 转换0~1
         image_data = np.expand_dims(image_data, 0)  # 添加批次维度，将图片增加1维
 
@@ -102,9 +104,9 @@ class Yolov3Predictor(object):
         out_boxes, out_scores, out_classes = self.sess.run(
             [self.boxes, self.scores, self.classes],
             feed_dict={
-                self.yolo_model.input: image_data,
-                self.input_image_shape: [image.size[1], image.size[0]],
-                K.learning_phase(): 0
+                self.yolo_model.input: image_data,  # 输入检测图片
+                self.input_image_shape: [image.size[1], image.size[0]],  # 输入检测尺寸
+                K.learning_phase(): 0  # 学习率, 0表示测试, 1表示训练
             })
 
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))  # 检测出的框
@@ -112,6 +114,7 @@ class Yolov3Predictor(object):
         font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
                                   size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))  # 字体
         thickness = (image.size[0] + image.size[1]) // 512  # 厚度
+
         for i, c in reversed(list(enumerate(out_classes))):
             predicted_class = self.class_names[c]  # 类别
             box = out_boxes[i]  # 框
@@ -126,7 +129,7 @@ class Yolov3Predictor(object):
             left = max(0, np.floor(left + 0.5).astype('int32'))
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-            print(label, (left, top), (right, bottom))  # 边框
+            # print(label, (left, top), (right, bottom))  # 边框
 
             if top - label_size[1] >= 0:  # 标签文字
                 text_origin = np.array([left, top - label_size[1]])
@@ -145,11 +148,38 @@ class Yolov3Predictor(object):
             del draw
 
         end = timer()
-        print(end - start)  # 检测执行时间
+        # print(end - start)  # 检测执行时间
         return image
 
     def close_session(self):
         self.sess.close()
+
+
+def detect_img_folder(img_folder, out_folder, yolo):
+    mkdir_if_not_exist(out_folder)
+    path_list, name_list = traverse_dir_files(img_folder)
+    print_info('图片数: %s' % len(path_list))
+
+    _, imgs_names = traverse_dir_files(out_folder)
+
+    count = 0
+    for path, name in zip(path_list, name_list):
+        if path.endswith('.gif'):
+            continue
+
+        out_name = name + '.d.jpg'
+        if out_name in imgs_names:
+            print_info('已检测: %s' % name)
+            continue
+
+        print_info('检测图片: %s' % name)
+        image = Image.open(path)
+        r_image = yolo.detect_image(image)
+        r_image.save(os.path.join(out_folder, name + '.d.jpg'))
+        count += 1
+        if count % 100 == 0:
+            print_info('已检测: %s' % count)
+    yolo.close_session()
 
 
 def detect_img_for_test(yolo):
@@ -166,4 +196,7 @@ def detect_img_for_test(yolo):
 
 if __name__ == '__main__':
     model_path = os.path.join(MODEL_DATA, 'ep074-loss26.535-val_loss27.370.h5')
-    detect_img_for_test(Yolov3Predictor(model_path=model_path))
+    yolo = Yolov3Predictor(model_path=model_path)
+    img_folder = os.path.join(IMG_DATA, 'log明星')
+    out_folder = os.path.join(OUTPUT_DATA, 'logStars')
+    detect_img_folder(img_folder, out_folder, yolo)
