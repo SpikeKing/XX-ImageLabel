@@ -15,20 +15,22 @@ p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
     sys.path.append(p)
 
-from root_dir import ROOT_DIR
+from root_dir import ROOT_DIR, IMG_DATA
 from utils.log_utils import print_info
 from utils.project_utils import *
 
 
-def download_img(img_url, out_folder, imgs_names):
+def download_img(img_url, out_folder, imgs_names, img_name=None):
     """
     下载图片
     :param img_url: 图片URL
     :param out_folder: 输出文件夹
     :param imgs_names: 已有图片
+    :param img_name: 图片名称
     :return: None
     """
-    img_name = img_url.split('/')[-1]  # 图片文件名
+    if not img_name:
+        img_name = img_url.split('/')[-1]  # 图片文件名
 
     if img_name in imgs_names:
         print_info('图片已存在: %s' % img_name)
@@ -43,11 +45,12 @@ def download_img(img_url, out_folder, imgs_names):
         print_info('图片已下载: %s' % img_name)
 
 
-def download_imgs(img_file, out_folder):
+def download_imgs(img_file, out_folder, prefix=None):
     """
     下载图片集合
     :param img_file: 图片文件
     :param out_folder: 文件夹
+    :param prefix: 文件前缀
     :return: None
     """
     paths_list = read_file(img_file)
@@ -56,18 +59,22 @@ def download_imgs(img_file, out_folder):
     _, imgs_names = traverse_dir_files(out_folder)
 
     count = 0
-    for path in paths_list:
-        download_img(path, out_folder, imgs_names)
+    for (index, path) in enumerate(paths_list):
+        if prefix:
+            download_img(path, out_folder, imgs_names, prefix + '_' + str(index) + '.jpg')
+        else:
+            download_img(path, out_folder, imgs_names)
         count += 1
         if count % 200 == 0:
             print_info('已下载: %s' % count)
 
 
-def download_imgs_for_mp(img_file, out_folder, n_prc=40):
+def download_imgs_for_mp(img_file, out_folder, prefix=None, n_prc=10):
     """
     多线程下载
     :param img_file: 图片文件
     :param out_folder: 输出文件夹
+    :param prefix: 图片前缀
     :param n_prc: 进程数, 默认40个
     :return: None
     """
@@ -78,14 +85,17 @@ def download_imgs_for_mp(img_file, out_folder, n_prc=40):
 
     _, imgs_names = traverse_dir_files(out_folder)
 
-    for path in paths_list:
-        pool.apply_async(download_img, (path, out_folder, imgs_names))
+    for (index, path) in enumerate(paths_list):
+        if prefix:
+            pool.apply_async(download_img, (path, out_folder, imgs_names, prefix + '_' + str(index) + '.jpg'))
+        else:
+            pool.apply_async(download_img, (path, out_folder, imgs_names))
 
     pool.close()
     pool.join()
 
-    _, imgs_names = traverse_dir_files(out_folder)
-    print_info('图片总数: %s' % len(imgs_names))
+    # _, imgs_names = traverse_dir_files(out_folder)
+    # print_info('图片总数: %s' % len(imgs_names))
     print_info('全部下载完成')
 
 
@@ -93,10 +103,17 @@ def test_of_ImgDownloader():
     """
     测试
     """
-    img_file = os.path.join(ROOT_DIR, 'img_downloader', 'urls', 'log明星')
+    img_file = os.path.join(ROOT_DIR, 'img_downloader', 'urls', 'log明星_100')
     out_folder = os.path.join(ROOT_DIR, 'img_data', 'log明星')
     mkdir_if_not_exist(out_folder)  # 新建文件夹
     download_imgs(img_file, out_folder)
+
+
+def test_of_folder():
+    file_path = os.path.join(ROOT_DIR, 'img_downloader', 'urls', 'MT-Person', 'log儿童_400')
+    out_folder = os.path.join(IMG_DATA, 'logAll')
+    mkdir_if_not_exist(out_folder)
+    download_imgs_for_mp(file_path, out_folder, '儿童')
 
 
 def parse_args():
@@ -137,3 +154,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # test_of_folder()

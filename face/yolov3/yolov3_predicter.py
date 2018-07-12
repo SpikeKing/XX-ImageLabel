@@ -34,7 +34,7 @@ class Yolov3Predictor(object):
         self.classes_path = classes_path  # 类别文件
 
         self.anchors_path = anchors_path  # Anchors
-        self.score = 0.15
+        self.score = 0.25
         self.iou = 0.20
         self.class_names = self._get_class()  # 获取类别
         self.anchors = self._get_anchors()  # 获取anchor
@@ -185,18 +185,20 @@ def detect_img_folder(img_folder, out_folder, yolo):
 def detect_img_for_test(yolo):
     file_name = '2PBzdZuypwBVXqWQ2acedQpOWLwN.jpg'
     img_path = os.path.join(IMG_DATA, 'logStars', file_name)
-    image = Image.open(img_path)
+    image = Image.open('/Users/wang/workspace/XX-ImageLabel/img_data/xxxx.jpg')
     r_image = yolo.detect_image(image)
     r_image.show()
-    output_folder = os.path.join(OUTPUT_DATA, 'logStars')
-    mkdir_if_not_exist(output_folder)
-    r_image.save(os.path.join(output_folder, file_name + '.d.jpg'))
+    # output_folder = os.path.join(OUTPUT_DATA, 'logStars')
+    # mkdir_if_not_exist(output_folder)
+    # r_image.save(os.path.join(output_folder, file_name + '.d.jpg'))
     yolo.close_session()
 
 
 if __name__ == '__main__':
-    model_path = os.path.join(MODEL_DATA, 'ep074-loss26.535-val_loss27.370.h5')
+    model_path = os.path.join(MODEL_DATA, 'ep030-loss22.691-val_loss24.034.h5')
     yolo = Yolov3Predictor(model_path=model_path)
-    img_folder = os.path.join(IMG_DATA, 'log明星')
-    out_folder = os.path.join(OUTPUT_DATA, 'logStars')
-    detect_img_folder(img_folder, out_folder, yolo)
+    # img_folder = os.path.join(IMG_DATA, 'log明星')
+    # out_folder = os.path.join(OUTPUT_DATA, 'logStars')
+    # detect_img_folder(img_folder, out_folder, yolo)
+
+    detect_img_for_test(yolo)
