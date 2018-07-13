@@ -5,9 +5,9 @@ Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/7/4
 """
 from face.yolov3.yolov3_dir import OUTPUT_DATA, MODEL_DATA
-from root_dir import IMG_DATA
+from root_dir import IMG_DATA, ROOT_DIR
 from utils.log_utils import print_info
-from utils.project_utils import mkdir_if_not_exist, traverse_dir_files
+from utils.project_utils import mkdir_if_not_exist, traverse_dir_files, write_line
 
 """
 Run a YOLO_v3 style detection model on test images.
@@ -84,7 +84,7 @@ class Yolov3Predictor(object):
                                            self.input_image_shape, score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image):
+    def detect_image(self, image, image_name=None, out_file=None):
         start = timer()  # 起始时间
 
         if self.model_image_size != (None, None):  # 416x416, 416=32*13，必须为32的倍数，最小尺度是除以32
@@ -108,6 +108,28 @@ class Yolov3Predictor(object):
                 self.input_image_shape: [image.size[1], image.size[0]],  # 输入检测尺寸
                 K.learning_phase(): 0  # 学习率, 0表示测试, 1表示训练
             })
+
+        if image_name and out_file:
+            boxes_list = [image_name]
+            for box, clazz in zip(out_boxes, out_classes):
+                line_list = box.tolist()
+                line_list = [str(int(x)) for x in line_list]
+                line_list.append(str(clazz))
+                boxes_list.append(','.join(line_list))
+            write_line(out_file, ' '.join(boxes_list))
+
+        # 过滤小于0.004的图像
+        # tmp_boxes, tmp_scores, tmp_classes = [], [], []
+        # for out_box, out_score, out_class in zip(out_boxes, out_scores, out_classes):
+        #     img_size = image.size[1] * image.size[0]
+        #     # print_info('图片大小: %s' % img_size)
+        #     top, left, bottom, right = out_box
+        #     box_ratio = abs(top - bottom) * abs(left - right) / img_size
+        #     if box_ratio > 0.004:
+        #         tmp_boxes.append(out_box)
+        #         tmp_scores.append(out_score)
+        #         tmp_classes.append(out_class)
+        # out_boxes, out_scores, out_classes = tmp_boxes, tmp_scores, tmp_classes
 
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))  # 检测出的框
 
@@ -173,9 +195,16 @@ def detect_img_folder(img_folder, out_folder, yolo):
             continue
 
         print_info('检测图片: %s' % name)
-        image = Image.open(path)
-        r_image = yolo.detect_image(image)
-        r_image.save(os.path.join(out_folder, name + '.d.jpg'))
+
+        try:
+            image = Image.open(path)
+            out_file = os.path.join(ROOT_DIR, 'face', 'yolov3', 'output_data', 'logAll_res.txt')
+            r_image = yolo.detect_image(image, ('logAll/' + name), out_file)
+            r_image.save(os.path.join(out_folder, name + '.d.jpg'))
+        except Exception as e:
+            print(e)
+            pass
+
         count += 1
         if count % 100 == 0:
             print_info('已检测: %s' % count)
@@ -186,6 +215,8 @@ def detect_img_for_test(yolo):
     file_name = '2PBzdZuypwBVXqWQ2acedQpOWLwN.jpg'
     img_path = os.path.join(IMG_DATA, 'logStars', file_name)
     image = Image.open('/Users/wang/workspace/XX-ImageLabel/img_data/xxxx.jpg')
+    out_file = os.path.join(ROOT_DIR, 'face', 'yolov3', 'output_data', 'logTest_res.txt')
+    r_image = yolo.detect_image(image, ('logAll/' + file_name), out_file)
     r_image = yolo.detect_image(image)
     r_image.show()
     # output_folder = os.path.join(OUTPUT_DATA, 'logStars')
@@ -197,8 +228,7 @@ def detect_img_for_test(yolo):
 if __name__ == '__main__':
     model_path = os.path.join(MODEL_DATA, 'ep030-loss22.691-val_loss24.034.h5')
     yolo = Yolov3Predictor(model_path=model_path)
-    # img_folder = os.path.join(IMG_DATA, 'log明星')
-    # out_folder = os.path.join(OUTPUT_DATA, 'logStars')
-    # detect_img_folder(img_folder, out_folder, yolo)
-
-    detect_img_for_test(yolo)
+    img_folder = os.path.join(IMG_DATA, 'logAll')
+    out_folder = os.path.join(OUTPUT_DATA, 'logAll—big')
+    detect_img_folder(img_folder, out_folder, yolo)
+    # detect_img_for_test(yolo)
