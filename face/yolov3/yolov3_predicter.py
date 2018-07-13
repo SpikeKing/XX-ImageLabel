@@ -229,6 +229,6 @@ if __name__ == '__main__':
     model_path = os.path.join(MODEL_DATA, 'ep030-loss22.691-val_loss24.034.h5')
     yolo = Yolov3Predictor(model_path=model_path)
     img_folder = os.path.join(IMG_DATA, 'logAll')
-    out_folder = os.path.join(OUTPUT_DATA, 'logAll—big')
+    out_folder = os.path.join(OUTPUT_DATA, 'logAll')
     detect_img_folder(img_folder, out_folder, yolo)
     # detect_img_for_test(yolo)
