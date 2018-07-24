@@ -16,6 +16,7 @@ from PIL import Image
 
 from face.yolov3.yolov3_alg import YoloV3
 from root_dir import IMG_DATA
+
 from utils.alg_utils import bb_intersection_over_union
 from utils.log_utils import print_info
 from utils.project_utils import safe_div, traverse_dir_files, mkdir_if_not_exist
@@ -26,6 +27,8 @@ class YoloVerification(object):
     def __init__(self, img_folder, out_folder):
         self.img_folder = img_folder
         self.out_folder = out_folder
+
+        mkdir_if_not_exist(out_f)
 
         self.model_path = 'model_data/ep074-loss26.535-val_loss27.370.h5',
         self.classes_path = 'configs/wider_classes.txt',
@@ -169,6 +172,5 @@ class YoloVerification(object):
 if __name__ == '__main__':
     img_f = os.path.join(IMG_DATA, 'logAll-0717')
     out_f = os.path.join(IMG_DATA, 'logAll-0717-xxx')
-    mkdir_if_not_exist(out_f)
     yv = YoloVerification(img_f, out_f)
     yv.verify_model()
