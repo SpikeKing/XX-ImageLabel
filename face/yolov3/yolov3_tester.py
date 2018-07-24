@@ -6,6 +6,12 @@ Created by C. L. Wang on 2018/7/20
 """
 import os
 
+import sys
+
+p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if p not in sys.path:
+    sys.path.append(p)
+
 from PIL import Image
 
 from face.yolov3.yolov3_alg import YoloV3
