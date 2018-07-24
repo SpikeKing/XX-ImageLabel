@@ -119,7 +119,7 @@ class YoloV3(object):
 
         return out_boxes, out_scores, out_classes
 
-    def draw_boxes(self, image, boxes, scores, classes):
+    def draw_boxes(self, image, boxes, scores, classes, colors=None):
         """
         在PIL.Image图像中，绘制预测框和标签
 
@@ -127,9 +127,13 @@ class YoloV3(object):
         :param boxes: 框数列表，ymin, xmin, ymax, xmax
         :param scores: 置信度列表
         :param classes: 类别列表
+        :param colors: 重新设置颜色
         :return: 绘制之后的Image图像
         """
         print_info('框数: {}'.format(len(boxes)))  # 画框的数量
+
+        if colors:
+            self.colors = colors
 
         font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
                                   size=np.floor(2e-2 * image.size[1] + 0.5).astype('int32'))  # 字体

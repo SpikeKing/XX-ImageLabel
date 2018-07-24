@@ -14,45 +14,7 @@ from utils.project_utils import *
 from utils.xml_processor import read_anno_xml
 
 
-def format_img_and_anno(img_folder):
-    """
-    格式化输出。图片和标注文件夹
-    :param img_folder: 图片文件夹
-    :return:
-    """
-    file_paths, file_names = traverse_dir_files(img_folder)
-    img_dict = dict()  # 将标注和图片路径，生成一个字典
-    for file_path, file_name in zip(file_paths, file_names):
-        if file_name.endswith('.jpg'):
-            name = file_name.strip('.jpg')
-            if name not in img_dict:
-                img_dict[name] = (None, None)
-            (img_p, anno_p) = img_dict[name]
-            img_dict[name] = (file_path, anno_p)
 
-        if file_name.endswith('.xml'):
-            name = file_name.strip('.xml')
-            if name not in img_dict:
-                img_dict[name] = (None, None)
-            (img_p, anno_p) = img_dict[name]
-            img_dict[name] = (img_p, file_path)
-
-    print_info('图片数: {}'.format(len(img_dict.keys())))
-    return img_dict
-
-
-def process_anno_folder(img_folder, out_folder):
-    """
-    处理标记文件夹
-    :param img_folder:
-    :param out_folder:
-    :return:
-    """
-    img_dict = format_img_and_anno(img_folder)
-    _, file_names = traverse_dir_files(out_folder)
-    for img_name in img_dict:
-        (img_p, anno_p) = img_dict[img_name]
-        draw_img(img_p, read_anno_xml(anno_p), out_folder, file_names)
 
 
 def draw_img(image, boxes, out_folder, file_names):
