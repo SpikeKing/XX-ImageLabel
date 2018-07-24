@@ -155,7 +155,7 @@ class YoloV3(object):
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
 
-            print_info('框{}: {}, {}'.format(j, (p_class, score), (left, top, right, bottom)))  # 边框
+            # print_info('框{}: {}, {}'.format(j, (p_class, score), (left, top, right, bottom)))  # 边框
 
             if top - label_size[1] >= 0:  # 标签文字
                 text_origin = np.array([left, top - label_size[1]])
