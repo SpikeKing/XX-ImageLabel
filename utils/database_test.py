@@ -4,17 +4,12 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/7/20
 """
-import os
 
 import cv2
 
 from root_dir import IMG_DATA
 from utils.log_utils import print_info
 from utils.project_utils import *
-from utils.xml_processor import read_anno_xml
-
-
-
 
 
 def draw_img(image, boxes, out_folder, file_names):

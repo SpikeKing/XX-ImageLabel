@@ -5,9 +5,8 @@ Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/7/20
 """
 import os
-import xml.etree.ElementTree as ET
+
 import xmltodict
-import xml.dom.minidom as minidom
 
 from root_dir import ROOT_DIR
 from utils.project_utils import read_file
