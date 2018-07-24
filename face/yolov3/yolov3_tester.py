@@ -46,8 +46,8 @@ class YoloVerification(object):
             _, precision, recall = self.detect_img(yolo, img_p, anno_p, self.out_folder)
             res_dict[img_name] = (precision, recall)
 
-            if count == 20:
-                break
+            # if count == 20:
+            #     break
 
         ap, ar = 0, 0
         for name in res_dict.keys():
