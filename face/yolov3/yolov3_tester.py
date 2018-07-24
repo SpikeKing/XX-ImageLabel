@@ -41,8 +41,6 @@ def verify_yolo(img_folder, out_folder):
         (img_p, anno_p) = img_dict[img_name]
         _, precision, recall = detect_img(yolo, img_p, anno_p)
         res_dict[img_name] = (precision, recall)
-        if count == 20:
-            break
 
     ap, ar = 0, 0
     for name in res_dict.keys():
