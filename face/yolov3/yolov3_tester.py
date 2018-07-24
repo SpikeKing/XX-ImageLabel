@@ -27,6 +27,10 @@ class YoloVerification(object):
         self.img_folder = img_folder
         self.out_folder = out_folder
 
+        self.model_path = 'model_data/ep074-loss26.535-val_loss27.370.h5',
+        self.classes_path = 'configs/wider_classes.txt',
+        self.anchors_path = 'configs/yolo_anchors.txt'
+
     def verify_model(self):
         """
         处理标记文件夹
@@ -34,7 +38,9 @@ class YoloVerification(object):
         :param out_folder:
         :return:
         """
-        yolo = YoloV3()  # yolo算法类
+        yolo = YoloV3(model_path=self.model_path,
+                      classes_path=self.classes_path,
+                      anchors_path=self.anchors_path)  # yolo算法类
 
         img_dict = self.format_img_and_anno(self.img_folder)
 
@@ -45,7 +51,6 @@ class YoloVerification(object):
             (img_p, anno_p) = img_dict[img_name]
             _, precision, recall = self.detect_img(yolo, img_p, anno_p, self.out_folder)
             res_dict[img_name] = (precision, recall)
-
             # if count == 20:
             #     break
 
@@ -111,13 +116,13 @@ class YoloVerification(object):
                                        [1.0 for i in range(len(anno_boxes))],
                                        [0 for i in range(len(anno_boxes))],
                                        [(128, 128, 255)])
-
+            # 图片的缩略图
             # size = 1024, 1024
             # img_data.thumbnail(size, Image.ANTIALIAS)
             img_name = img_path.split('/')[-1]
             out_img = os.path.join(out_folder, img_name + '.d.png')
-            img_data.save(out_img)
-            # img_data.show()
+            img_data.save(out_img)  # 存储
+            # img_data.show()  # 显示
         return img_path, precision, recall
 
     @staticmethod
