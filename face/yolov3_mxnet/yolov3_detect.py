@@ -14,7 +14,7 @@ from darknet import DarkNet
 from face.yolov3_mxnet.dir_consts import CONFIGS_DATA, MODEL_DATA
 from root_dir import IMG_DATA
 from utils import *
-from utils.xml_processor import draw_boxes
+from utils.dtc_utils import draw_boxes
 
 image_name = 0
 
