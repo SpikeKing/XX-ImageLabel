@@ -72,6 +72,7 @@ def bbox_iou(box1, box2, transform=True):
     iou = inter_area / (b1_area + b2_area - inter_area)
     # iou[inter_area >= b1_area] = 0.8
     # iou[inter_area >= b2_area] = 0.8
+    # iou[inter_area >= b2_area] = 0.8
     return nd.clip(iou, 1e-5, 1. - 1e-5)
 
 
