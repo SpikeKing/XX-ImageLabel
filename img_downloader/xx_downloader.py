@@ -4,20 +4,30 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/7/9
 """
-import argparse
+
 import os
+import sys
+import argparse
+import shutil
+import requests
 from multiprocessing.pool import Pool
 
-import requests
-import sys
+from datetime import datetime
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
     sys.path.append(p)
 
-from root_dir import ROOT_DIR, IMG_DATA
-from utils.log_utils import print_info
-from utils.project_utils import *
+
+def get_current_time_str():
+    """
+    输入当天的日期格式, 20170718_1137
+    :return: 20170718_1137
+    """
+    return datetime.now().strftime('%Y%m%d%H%M%S')
+
+
+logfile = 'download_log_{}.log'.format(get_current_time_str())  # 日志文件
 
 
 def download_img(img_url, out_folder, imgs_names, img_name=None):
@@ -43,30 +53,6 @@ def download_img(img_url, out_folder, imgs_names, img_name=None):
     with open(out_file, 'wb') as hl:
         hl.write(img_data)
         print_info('图片已下载: %s' % img_name)
-
-
-def download_imgs(img_file, out_folder, prefix=None):
-    """
-    下载图片集合
-    :param img_file: 图片文件
-    :param out_folder: 文件夹
-    :param prefix: 文件前缀
-    :return: None
-    """
-    paths_list = read_file(img_file)
-    print_info('图片总数: %s' % len(paths_list))
-
-    _, imgs_names = traverse_dir_files(out_folder)
-
-    count = 0
-    for (index, path) in enumerate(paths_list):
-        if prefix:
-            download_img(path, out_folder, imgs_names, prefix + '_' + str(index) + '.jpg')
-        else:
-            download_img(path, out_folder, imgs_names)
-        count += 1
-        if count % 200 == 0:
-            print_info('已下载: %s' % count)
 
 
 def download_imgs_for_mp(img_file, out_folder, prefix=None, n_prc=10):
@@ -99,23 +85,6 @@ def download_imgs_for_mp(img_file, out_folder, prefix=None, n_prc=10):
     print_info('全部下载完成')
 
 
-def test_of_ImgDownloader():
-    """
-    测试
-    """
-    img_file = os.path.join(ROOT_DIR, 'img_downloader', 'urls', 'log明星_100')
-    out_folder = os.path.join(ROOT_DIR, 'img_data', 'log明星')
-    mkdir_if_not_exist(out_folder)  # 新建文件夹
-    download_imgs(img_file, out_folder)
-
-
-def test_of_folder():
-    file_path = os.path.join(ROOT_DIR, 'img_downloader', 'urls', 'MT-Person', 'log儿童_400')
-    out_folder = os.path.join(IMG_DATA, 'logAll')
-    mkdir_if_not_exist(out_folder)
-    download_imgs_for_mp(file_path, out_folder, '儿童')
-
-
 def parse_args():
     """
     处理脚本参数，支持相对路径
@@ -124,23 +93,121 @@ def parse_args():
     :return: arg_img，文件路径；out_folder，输出文件夹
     """
     parser = argparse.ArgumentParser(description='下载数据脚本')
-    parser.add_argument('--img_file', required=True, help='文件路径', type=str)
-    parser.add_argument('--out_folder', help='输出文件夹', type=str)
+    parser.add_argument('-i', dest='img_file', required=True, help='文件路径', type=str)
+    parser.add_argument('-o', dest='out_folder', required=True, help='输出文件夹', type=str)
     args = parser.parse_args()
 
     arg_img = args.img_file
-    if len(arg_img.split('/')) == 1:
-        arg_img = os.path.join(ROOT_DIR, 'img_downloader', 'urls', arg_img)
     print_info("文件路径：%s" % arg_img)
 
     arg_out = args.out_folder
-    if not arg_out:
-        file_name = arg_img.split('/')[-1]
-        arg_out = os.path.join(ROOT_DIR, 'img_data', file_name)
-    elif len(arg_out.split('/')) == 1:
-        arg_out = os.path.join(ROOT_DIR, 'img_data', arg_out)
     print_info("输出文件夹：%s" % arg_out)
     return arg_img, arg_out
+
+
+def write_line(file_name, line):
+    """
+    将行数据写入文件
+    :param file_name: 文件名
+    :param line: 行数据
+    :return: None
+    """
+    if file_name == "":
+        return
+    with open(file_name, "a+") as fs:
+        if type(line) is (tuple or list):
+            fs.write("%s\n" % ", ".join(line))
+        else:
+            fs.write("%s\n" % line)
+
+
+def print_info(log_str):
+    """
+    打印日志
+    :param log_str: 日志信息
+    :return: None
+    """
+    log_str = '[Info {}] {}'.format(get_current_time_str(), str(log_str))
+    write_line(logfile, log_str)
+    print(log_str)
+
+
+def mkdir_if_not_exist(dir_name, is_delete=False):
+    """
+    创建文件夹
+    :param dir_name: 文件夹
+    :param is_delete: 是否删除
+    :return: 是否成功
+    """
+    try:
+        if is_delete:
+            if os.path.exists(dir_name):
+                shutil.rmtree(dir_name)
+                print '[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name
+
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+            print '[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name
+        return True
+    except Exception as e:
+        print '[Exception] %s' % e
+        return False
+
+
+def traverse_dir_files(root_dir, ext=None):
+    """
+    列出文件夹中的文件, 深度遍历
+    :param root_dir: 根目录
+    :param ext: 后缀名
+    :return: [文件路径列表, 文件名称列表]
+    """
+    names_list = []
+    paths_list = []
+    for parent, _, fileNames in os.walk(root_dir):
+        for name in fileNames:
+            if name.startswith('.'):  # 去除隐藏文件
+                continue
+            if ext:  # 根据后缀名搜索
+                if name.endswith(tuple(ext)):
+                    names_list.append(name)
+                    paths_list.append(os.path.join(parent, name))
+            else:
+                names_list.append(name)
+                paths_list.append(os.path.join(parent, name))
+    if not names_list:  # 文件夹为空
+        return paths_list, names_list
+    paths_list, names_list = sort_two_list(paths_list, names_list)
+    return paths_list, names_list
+
+
+def sort_two_list(list1, list2):
+    """
+    排序两个列表
+    :param list1: 列表1
+    :param list2: 列表2
+    :return: 排序后的两个列表
+    """
+    list1, list2 = (list(t) for t in zip(*sorted(zip(list1, list2))))
+    return list1, list2
+
+
+def read_file(data_file, mode='more'):
+    """
+    读文件, 原文件和数据文件
+    :return: 单行或数组
+    """
+    try:
+        with open(data_file, 'r') as f:
+            if mode == 'one':
+                output = f.read()
+                return output
+            elif mode == 'more':
+                output = f.readlines()
+                return map(str.strip, output)
+            else:
+                return list()
+    except IOError:
+        return list()
 
 
 def main():
@@ -154,4 +221,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # test_of_folder()
