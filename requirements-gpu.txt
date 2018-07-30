@@ -1,4 +1,4 @@
-requests==2.19.1
+requests==2.18.4
 numpy==1.14.5
 keras==2.2.0
 tensorflow-gpu==1.4.0
@@ -9,3 +9,4 @@ configparser==3.5.0
 graphviz==0.8.4
 pydot==1.2.4
 xmltodict==0.11.0
+mxnet-gpu==1.2.1

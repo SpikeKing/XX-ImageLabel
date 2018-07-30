@@ -190,7 +190,7 @@ def yolo_boxes_and_scores(feats, anchors, num_classes, input_shape, image_shape)
                                                                 anchors, num_classes, input_shape)
     boxes = yolo_correct_boxes(box_xy, box_wh, input_shape, image_shape)
     boxes = K.reshape(boxes, [-1, 4])
-    box_scores = box_confidence * box_class_probs
+    box_scores = box_confidence * box_class_probs  # 最终的score是置信度和框类别概率的乘积
     box_scores = K.reshape(box_scores, [-1, num_classes])
     return boxes, box_scores
 
