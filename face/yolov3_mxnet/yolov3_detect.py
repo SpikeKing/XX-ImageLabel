@@ -8,12 +8,13 @@ Created by C. L. Wang on 2018/7/4
 import colorsys
 import os
 
-from PIL import ImageFont, ImageDraw, Image
+from PIL import Image
 
 from darknet import DarkNet
 from face.yolov3_mxnet.dir_consts import CONFIGS_DATA, MODEL_DATA
 from root_dir import IMG_DATA
 from utils import *
+from utils.xml_processor import draw_boxes
 
 image_name = 0
 
@@ -52,58 +53,6 @@ def generate_bboxes(img_data, bbox_raw, input_dim):
         classes_.append(bbox[7])
 
     return boxes_, scores_, classes_
-
-
-def draw_boxes(image, boxes, scores, classes, colors, class_names):
-    """
-    在PIL.Image图像中，绘制预测框和标签
-
-    :param image: 图片
-    :param boxes: 框数列表，ymin, xmin, ymax, xmax
-    :param scores: 置信度列表
-    :param classes: 类别列表
-    :param colors: 重新设置颜色
-    :param class_names: 类别名称
-    :return: 绘制之后的Image图像
-    """
-    print('框数: {}'.format(len(boxes)))  # 画框的数量
-
-    font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
-                              size=np.floor(2e-2 * image.size[1] + 0.5).astype('int32'))  # 字体
-    thickness = (image.size[0] + image.size[1]) // 512  # 边框的大小
-
-    for j, c in reversed(list(enumerate(classes))):
-        c = int(c)
-        p_class = class_names[c]  # 预测类别
-        score = scores[j]  # 置信度
-        box = boxes[j]  # 框
-
-        label = '{} {:.2f}'.format(p_class, score)  # 标签
-        draw = ImageDraw.Draw(image)  # 画图
-        label_size = draw.textsize(label, font)  # 标签文字
-
-        left, top, right, bottom = box  # Box中的信息: xmin, ymin, xmax, ymax
-
-        top = max(0, np.floor(top + 0.5).astype('int32'))
-        left = max(0, np.floor(left + 0.5).astype('int32'))
-        bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
-        right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-
-        # print_info('框{}: {}, {}'.format(j, (p_class, score), (left, top, right, bottom)))  # 边框
-
-        if top - label_size[1] >= 0:  # 标签文字
-            text_origin = np.array([left, top - label_size[1]])
-        else:
-            text_origin = np.array([left, top + 1])
-
-        for j in range(thickness):  # 一笔一笔的画框
-            draw.rectangle([left + j, top + j, right - j, bottom - j], outline=colors[c])
-
-        draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=colors[c])  # 标签背景
-        draw.text(text_origin, label, fill=(0, 0, 0), font=font)  # 标签字体
-        del draw
-
-    return image
 
 
 def main():
@@ -156,8 +105,10 @@ def main():
     np.random.seed(10101)
     np.random.shuffle(colors)  # 随机颜色
     np.random.seed(None)
-    img_data = Image.open(img_path)
+
     boxes, scores, classes = generate_bboxes(image_data, pred_res, input_dim=input_dim)
+
+    img_data = Image.open(img_path)
     image = draw_boxes(img_data, boxes, scores, classes, colors, classes_name)
     image.show()
     print(pred_res)
