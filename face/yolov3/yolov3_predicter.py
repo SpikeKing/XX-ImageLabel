@@ -4,9 +4,8 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/7/4
 """
-from face.yolov3.module_dir import CONFIGS_DATA
-from face.yolov3.yolov3_dir import OUTPUT_DATA, MODEL_DATA
-from root_dir import IMG_DATA, ROOT_DIR
+from face.yolov3.yolov3_dir import MODEL_DATA, CONFIGS
+from root_dir import IMG_DATA, ROOT_DIR, FONT_DATA
 from utils.log_utils import print_info
 from utils.project_utils import mkdir_if_not_exist, traverse_dir_files, write_line
 
@@ -117,22 +116,9 @@ class Yolov3Predictor(object):
                 boxes_list.append(','.join(line_list))
             write_line(out_file, ' '.join(boxes_list))
 
-        # 过滤小于0.004的图像
-        # tmp_boxes, tmp_scores, tmp_classes = [], [], []
-        # for out_box, out_score, out_class in zip(out_boxes, out_scores, out_classes):
-        #     img_size = image.size[1] * image.size[0]
-        #     # print_info('图片大小: %s' % img_size)
-        #     top, left, bottom, right = out_box
-        #     box_ratio = abs(top - bottom) * abs(left - right) / img_size
-        #     if box_ratio > 0.004:
-        #         tmp_boxes.append(out_box)
-        #         tmp_scores.append(out_score)
-        #         tmp_classes.append(out_class)
-        # out_boxes, out_scores, out_classes = tmp_boxes, tmp_scores, tmp_classes
-
         print('Found {} boxes for {}'.format(len(out_boxes), 'img'))  # 检测出的框
 
-        font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
+        font = ImageFont.truetype(font=os.path.join(FONT_DATA, 'FiraMono-Medium.otf'),
                                   size=np.floor(2e-2 * image.size[1] + 0.5).astype('int32'))  # 字体
         thickness = (image.size[0] + image.size[1]) // 512  # 厚度
 
@@ -211,16 +197,10 @@ def detect_img_folder(img_folder, out_folder, yolo):
 
 
 def detect_img_for_test(yolo):
-    file_name = 'hand_and_car.jpg'
-    img_path = os.path.join(IMG_DATA, 'hand_and_car.jpg')
+    img_path = os.path.join(IMG_DATA, 'jiaotong-0727', '6emekgFq0neQv8ELXmCq5aQnL3Zz.jpg')
     image = Image.open(img_path)
-    out_file = os.path.join(ROOT_DIR, 'face', 'yolov3', 'output_data', 'logTest_res.txt')
-    # r_image = yolo.detect_image(image, ('logAll/' + file_name), out_file)
     r_image = yolo.detect_image(image)
     r_image.show()
-    # output_folder = os.path.join(OUTPUT_DATA, 'logStars')
-    # mkdir_if_not_exist(output_folder)
-    # r_image.save(os.path.join(output_folder, file_name + '.d.jpg'))
     yolo.close_session()
 
 
@@ -230,11 +210,11 @@ if __name__ == '__main__':
     # anchors_path = 'configs/yolo_anchors.txt'
 
     model_path = os.path.join(MODEL_DATA, 'yolo_weights.h5')
-    classes_path = os.path.join(CONFIGS_DATA, 'coco_classes.txt')
-    anchors_path = os.path.join(CONFIGS_DATA, 'yolo_anchors.txt')
+    classes_path = os.path.join(CONFIGS, 'coco_classes.txt')
+    anchors_path = os.path.join(CONFIGS, 'yolo_anchors.txt')
 
     yolo = Yolov3Predictor(model_path=model_path, classes_path=classes_path, anchors_path=anchors_path)
-    img_folder = os.path.join(IMG_DATA, 'logAll')
-    out_folder = os.path.join(OUTPUT_DATA, 'logAll')
+    # img_folder = os.path.join(IMG_DATA, 'logAll')
+    # out_folder = os.path.join(OUTPUT_DATA, 'logAll')
     # detect_img_folder(img_folder, out_folder, yolo)
     detect_img_for_test(yolo)

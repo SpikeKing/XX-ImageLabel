@@ -9,4 +9,4 @@ import os
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))  # 存储项目所在的绝对路径
 IMG_DATA = os.path.join(ROOT_DIR, 'img_data')  # 图片数据
-FONT_DATA = os.path.join(ROOT_DIR, 'font')  # 字体
+FONT_DATA = os.path.join(ROOT_DIR, 'font_data')  # 字体

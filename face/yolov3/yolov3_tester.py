@@ -8,6 +8,8 @@ import os
 
 import sys
 
+from face.yolov3.yolov3_dir import MODEL_DATA, CONFIGS
+
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if p not in sys.path:
     sys.path.append(p)
@@ -30,9 +32,9 @@ class YoloVerification(object):
 
         mkdir_if_not_exist(out_f)
 
-        self.model_path = 'model_data/ep074-loss26.535-val_loss27.370.h5',
-        self.classes_path = 'configs/wider_classes.txt',
-        self.anchors_path = 'configs/yolo_anchors.txt'
+        self.model_path = os.path.join(MODEL_DATA, 'yolo_weights.h5')
+        self.classes_path = os.path.join(CONFIGS, 'coco_classes.txt')
+        self.anchors_path = os.path.join(CONFIGS, 'yolo_anchors.txt')
 
     def verify_model(self):
         """
@@ -54,8 +56,8 @@ class YoloVerification(object):
             (img_p, anno_p) = img_dict[img_name]
             _, precision, recall = self.detect_img(yolo, img_p, anno_p, self.out_folder)
             res_dict[img_name] = (precision, recall)
-            # if count == 20:
-            #     break
+            if count == 10:
+                break
 
         ap, ar = 0, 0
         for name in res_dict.keys():
@@ -66,7 +68,6 @@ class YoloVerification(object):
         mAp = safe_div(ap, len(res_dict.keys()))
         mAr = safe_div(ar, len(res_dict.keys()))
         print_info('平均精准率: {:.4f} %, 平均召回率: {:.4f} %'.format(mAp * 100, mAr * 100))
-
 
     def detect_img(self, yolo, img_path, anno_path, out_folder=None):
         """
@@ -82,13 +83,13 @@ class YoloVerification(object):
         boxes = self.reform_boxes(boxes)
         print_info('检测: {}'.format(boxes))
 
-        anno_boxes = read_anno_xml(anno_path)
+        anno_boxes, name_list = read_anno_xml(anno_path)
         anno_boxes = self.reform_boxes2(anno_boxes)
         print_info('真值: {}'.format(anno_boxes))
 
         precision, recall = self.iou_of_boxes(boxes, anno_boxes)
 
-        if out_folder and (precision != 1.0 or recall != 1.0):
+        if True or out_folder and (precision != 1.0 or recall != 1.0):
             img_data = yolo.draw_boxes(img_data, boxes, scores, classes, [(255, 0, 0)])
             img_data = yolo.draw_boxes(img_data, anno_boxes,
                                        [1.0 for i in range(len(anno_boxes))],
@@ -145,7 +146,7 @@ class YoloVerification(object):
 
 
 if __name__ == '__main__':
-    img_f = os.path.join(IMG_DATA, 'logAll-0717')
-    out_f = os.path.join(IMG_DATA, 'logAll-0717-xxx')
+    img_f = os.path.join(IMG_DATA, 'jiaotong-0727')
+    out_f = os.path.join(IMG_DATA, 'jiaotong-0727-xxx')
     yv = YoloVerification(img_f, out_f)
     yv.verify_model()

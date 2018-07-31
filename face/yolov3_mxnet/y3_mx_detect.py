@@ -10,10 +10,10 @@ import os
 
 from PIL import Image
 
-from darknet import DarkNet
+from darknet import DarkNet, nd
 from face.yolov3_mxnet.dir_consts import CONFIGS_DATA, MODEL_DATA
 from root_dir import IMG_DATA
-from utils import *
+from y3_utils import *
 from utils.dtc_utils import draw_boxes
 
 image_name = 0
@@ -56,11 +56,11 @@ def generate_bboxes(img_data, bbox_raw, input_dim):
 
 
 def main():
-    img_path = os.path.join(IMG_DATA, 'hand_and_car.jpg')  # 图片路径
+    # img_path = os.path.join(IMG_DATA, 'hand_and_car.jpg')  # 图片路径
+    img_path = os.path.join(IMG_DATA, 'jiaotong-0727', 'OPjlj2bF9nKjgOg0QNzTxqwRJZdgp.jpg')
     params_path = os.path.join(MODEL_DATA, 'yolov3.weights')  # YOLO v3 权重文件
     classes_path = os.path.join(CONFIGS_DATA, 'coco.names')  # 类别文件
 
-    batch_size = 16  # 批次数
     confidence = 0.15  # 置信度
     nms_thresh = 0.20  # NMS阈值
     input_dim = 416  # YOLOv3的检测尺寸
@@ -97,6 +97,7 @@ def main():
     prediction = predict_transform(net(image_arr), input_dim, anchors)
 
     pred_res = write_results(prediction, num_classes, confidence=confidence, nms_conf=nms_thresh)
+    boxes, scores, classes = generate_bboxes(image_data, pred_res, input_dim=input_dim)
 
     hsv_tuples = [(float(x) / len(classes_name), 1., 1.)
                   for x in range(len(classes_name))]  # 不同颜色
@@ -105,8 +106,6 @@ def main():
     np.random.seed(10101)
     np.random.shuffle(colors)  # 随机颜色
     np.random.seed(None)
-
-    boxes, scores, classes = generate_bboxes(image_data, pred_res, input_dim=input_dim)
 
     img_data = Image.open(img_path)
     image = draw_boxes(img_data, boxes, scores, classes, colors, classes_name)

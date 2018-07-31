@@ -15,6 +15,7 @@ from timeit import default_timer as timer
 
 from face.yolov3.core.model import yolo_body, yolo_eval
 from face.yolov3.core.utils import letterbox_image
+from root_dir import FONT_DATA
 
 from utils.log_utils import print_info
 from utils.project_utils import write_line
@@ -135,11 +136,12 @@ class YoloV3(object):
         if colors:
             self.colors = colors
 
-        font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
+        font = ImageFont.truetype(font=os.path.join(FONT_DATA, 'FiraMono-Medium.otf'),
                                   size=np.floor(2e-2 * image.size[1] + 0.5).astype('int32'))  # 字体
         thickness = (image.size[0] + image.size[1]) // 512  # 边框的大小
 
         for j, c in reversed(list(enumerate(classes))):
+            c_idx = int(c % len(self.colors))  # 颜色索引
             p_class = self.class_names[c]  # 预测类别
             score = scores[j]  # 置信度
             box = boxes[j]  # 框
@@ -163,9 +165,9 @@ class YoloV3(object):
                 text_origin = np.array([left, top + 1])
 
             for j in range(thickness):  # 一笔一笔的画框
-                draw.rectangle([left + j, top + j, right - j, bottom - j], outline=self.colors[c])
+                draw.rectangle([left + j, top + j, right - j, bottom - j], outline=self.colors[c_idx])
 
-            draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=self.colors[c])  # 标签背景
+            draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=self.colors[c_idx])  # 标签背景
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)  # 标签字体
             del draw
 

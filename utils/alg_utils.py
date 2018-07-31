@@ -9,6 +9,10 @@ Created by C. L. Wang on 2018/7/23
 def bb_intersection_over_union(boxA, boxB):
     # determine the (x, y)-coordinates of the intersection rectangle
     # 图像的交叉框
+
+    boxA = [int(x) for x in boxA]
+    boxB = [int(x) for x in boxB]
+
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
     xB = min(boxA[2], boxB[2])

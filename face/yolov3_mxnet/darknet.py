@@ -1,5 +1,5 @@
 from mxnet.gluon import nn
-from utils import *
+from y3_utils import *
 
 
 def ConvBNBlock(channels, kernel_size, strides, pad, use_bias=False, leaky=True):

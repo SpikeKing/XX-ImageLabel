@@ -132,13 +132,13 @@ def write_results(prediction, num_classes, confidence=0.1, nms_conf=1.0):
     x = np.sum(np.where(test_arr > 0.25, 1, 0))
     print(x)
 
-    box_confidence = nd.repeat(nd.expand_dims(prediction[:,:,4],2),num_classes,axis=2)
-    prediction[:,:,5:5+num_classes] = prediction[:,:,5:5+num_classes] * box_confidence
-    conf_mask = prediction[:, :, 5:5+num_classes] > confidence
-    prediction[:, :, 5:5+num_classes]  = prediction[:, :, 5:5+num_classes] * conf_mask
+    # box_confidence = nd.repeat(nd.expand_dims(prediction[:, :, 4], 2), num_classes, axis=2)
+    # prediction[:, :, 5:5 + num_classes] = prediction[:, :, 5:5 + num_classes] * box_confidence
+    # conf_mask = prediction[:, :, 5:5 + num_classes] > confidence
+    # prediction[:, :, 5:5 + num_classes] = prediction[:, :, 5:5 + num_classes] * conf_mask
 
-    #conf_mask = (prediction[:, :, 4] > confidence).expand_dims(2)
-    #prediction = prediction * conf_mask
+    conf_mask = (prediction[:, :, 4] > confidence).expand_dims(2)  # 过滤框的置信度
+    prediction = prediction * conf_mask
 
     batch_size = prediction.shape[0]
 
@@ -180,9 +180,12 @@ def write_results(prediction, num_classes, confidence=0.1, nms_conf=1.0):
             class_mask_ind = np.nonzero(cls_mask[:, -2])
             image_pred_class = image_pred_[class_mask_ind].reshape((-1, 7))
 
+            image_pred_class[:, 4] = image_pred_class[:, 4] * image_pred_class[:, 5]  # 双重排序
+
             # sort the detections such that the entry with the maximum objectness
             # confidence is at the top
-            conf_sort_index = np.argsort(image_pred_class[:, 5])[::-1]
+            # conf_sort_index = np.argsort(image_pred_class[:, 5])[::-1]
+            conf_sort_index = np.argsort(image_pred_class[:, 4])[::-1]
             image_pred_class = image_pred_class[conf_sort_index]
             idx = image_pred_class.shape[0]
 
@@ -204,7 +207,8 @@ def write_results(prediction, num_classes, confidence=0.1, nms_conf=1.0):
                 image_pred_class[i + 1:] *= iou_mask
 
                 # Remove the non-zero entries
-                non_zero_ind = np.nonzero(image_pred_class[:, 5])
+                # non_zero_ind = np.nonzero(image_pred_class[:, 5])
+                non_zero_ind = np.nonzero(image_pred_class[:, 4])
                 image_pred_class = image_pred_class[non_zero_ind].reshape((-1, 7))
 
             batch_ind = np.ones((image_pred_class.shape[0], 1)) * ind
