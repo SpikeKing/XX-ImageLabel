@@ -13,9 +13,37 @@ import numpy as np
 import xmltodict
 from PIL import ImageFont, ImageDraw
 
-from img_downloader.xx_downloader import print_info
+from img_downloader.xx_downloader import print_info, traverse_dir_files
 from root_dir import ROOT_DIR, FONT_DATA
 from utils.project_utils import read_file
+
+
+def format_img_and_anno(img_folder):
+    """
+    格式化输出。图片和标注文件夹
+    :param img_folder: 图片文件夹
+    :return:
+    """
+    file_paths, file_names = traverse_dir_files(img_folder)
+    img_dict = dict()  # 将标注和图片路径，生成一个字典
+
+    for file_path, file_name in zip(file_paths, file_names):
+        if file_name.endswith('.jpg'):
+            name = file_name.replace('.jpg', '')
+            if name not in img_dict:
+                img_dict[name] = (None, None)
+            (img_p, anno_p) = img_dict[name]
+            img_dict[name] = (file_path, anno_p)
+
+        if file_name.endswith('.xml'):
+            name = file_name.replace('.xml', '')
+            if name not in img_dict:
+                img_dict[name] = (None, None)
+            (img_p, anno_p) = img_dict[name]
+            img_dict[name] = (img_p, file_path)
+
+    print_info('图片数: {}'.format(len(img_dict.keys())))
+    return img_dict
 
 
 def read_anno_xml(xml_file):

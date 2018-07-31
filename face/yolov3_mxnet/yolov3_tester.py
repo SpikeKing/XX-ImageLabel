@@ -20,7 +20,7 @@ from root_dir import IMG_DATA
 from utils.dtc_utils import read_anno_xml, format_img_and_anno
 from utils.alg_utils import bb_intersection_over_union
 from utils.log_utils import print_info
-from utils.project_utils import safe_div, traverse_dir_files, mkdir_if_not_exist
+from utils.project_utils import safe_div, mkdir_if_not_exist
 
 
 class YoloVerification(object):
@@ -66,7 +66,6 @@ class YoloVerification(object):
         mAp = safe_div(ap, len(res_dict.keys()))
         mAr = safe_div(ar, len(res_dict.keys()))
         print_info('平均精准率: {:.4f} %, 平均召回率: {:.4f} %'.format(mAp * 100, mAr * 100))
-
 
     def detect_img(self, yolo, img_path, anno_path, out_folder=None):
         """
