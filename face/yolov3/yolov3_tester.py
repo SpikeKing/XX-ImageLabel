@@ -62,6 +62,7 @@ class YoloVerification(object):
             precision, recall = res_dict[name]
             ap += precision
             ar += recall
+
         mAp = safe_div(ap, len(res_dict.keys()))
         mAr = safe_div(ar, len(res_dict.keys()))
         print_info('平均精准率: {:.4f} %, 平均召回率: {:.4f} %'.format(mAp * 100, mAr * 100))
