@@ -38,12 +38,12 @@ def make_line_colors(n_color=20, bias=1.0, alpha=1.0):
     return colors
 
 
-def filter_sbox(image_size, box_group, ratio=0.01):
+def filter_sbox(image_size, box_group, ratio=0.003):
     """
-    过滤检测图像中，比较小的框，阈值默认0.01，即1%
+    过滤检测图像中，比较小的框
     :param image_size: 图片宽高, 如(416, 416)
     :param box_group: 框组合, 如(boxes, scores, classes)
-    :param ratio: 阈值，默认0.01，占比小于阈值，过滤
+    :param ratio: 阈值
     :return: 过滤后的框组合
     """
     # 过滤小于0.004的图像
@@ -133,7 +133,7 @@ def draw_boxes_simple(image, boxes, scores, class_names, colors_dict, is_alpha=F
     :param is_alpha: 是否透明
     :return: 绘制之后的Image图像
     """
-    print('框数: {}'.format(len(boxes)))  # 画框的数量
+    # print('框数: {}'.format(len(boxes)))  # 画框的数量
 
     if is_alpha:
         image = image.convert("RGBA")  # 转换为透明模式
@@ -197,7 +197,7 @@ def draw_boxes(image, boxes, scores, classes, colors, class_names):
     :param class_names: 类别名称
     :return: 绘制之后的Image图像
     """
-    print('框数: {}'.format(len(boxes)))  # 画框的数量
+    # print('框数: {}'.format(len(boxes)))  # 画框的数量
 
     font = ImageFont.truetype(font=os.path.join(FONT_DATA, 'FiraMono-Medium.otf'),
                               size=np.floor(2e-2 * image.size[1] + 0.5).astype('int32'))  # 字体

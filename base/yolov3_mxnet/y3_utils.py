@@ -23,7 +23,8 @@ def try_gpu(num_list):
             _ = nd.array([0], ctx=tmp_ctx)
             ctx.append(tmp_ctx)
         except Exception as e:
-            print("gpu {}:".format(num), e)
+            # print("gpu {}:".format(num), e)
+            print('GPU未启用')
     if not ctx:
         ctx.append(mx.cpu())
     return ctx
@@ -126,11 +127,11 @@ def predict_transform(prediction, input_dim, anchors):
 
 def write_results(prediction, num_classes, confidence=0.1, nms_conf=1.0):
     # confidence = 0.01
-    print(confidence)
-    print(nms_conf)
-    test_arr = prediction[:, :, 4].asnumpy()
-    x = np.sum(np.where(test_arr > 0.25, 1, 0))
-    print(x)
+    # print(confidence)
+    # print(nms_conf)
+    # test_arr = prediction[:, :, 4].asnumpy()
+    # x = np.sum(np.where(test_arr > 0.25, 1, 0))
+    # print(x)
 
     # box_confidence = nd.repeat(nd.expand_dims(prediction[:, :, 4], 2), num_classes, axis=2)
     # prediction[:, :, 5:5 + num_classes] = prediction[:, :, 5:5 + num_classes] * box_confidence
@@ -155,7 +156,7 @@ def write_results(prediction, num_classes, confidence=0.1, nms_conf=1.0):
         image_pred = prediction[ind]  # 6个
 
         non_zero_ind = np.nonzero(image_pred[:, 4].asnumpy())
-        print(non_zero_ind)
+        # print(non_zero_ind)
 
         max_conf = nd.max(image_pred[:, 5:5 + num_classes], axis=1)
         max_conf_score = nd.argmax(image_pred[:, 5:5 + num_classes], axis=1)

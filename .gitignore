@@ -115,5 +115,5 @@ img_data/
 # alg data
 face/yolov3/model_data/
 face/yolov3/output_data/
-face/yolov3_mxnet/model_data/
-face/yolov3_mxnet/output_data/
+base/yolov3_mxnet/model_data/
+base/yolov3_mxnet/output_data/

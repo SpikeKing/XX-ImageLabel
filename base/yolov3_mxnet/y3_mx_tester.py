@@ -8,6 +8,7 @@ import os
 import sys
 
 import cv2
+import copy
 import numpy as np
 from PIL import Image
 from mxnet import nd
@@ -16,9 +17,9 @@ p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if p not in sys.path:
     sys.path.append(p)
 
-from face.yolov3_mxnet.darknet import DarkNet
-from face.yolov3_mxnet.dir_consts import MODEL_DATA, CONFIGS_DATA
-from face.yolov3_mxnet.y3_utils import try_gpu, load_classes, prep_image, predict_transform, write_results
+from base.yolov3_mxnet.darknet import DarkNet
+from base.yolov3_mxnet.dir_consts import MODEL_DATA, CONFIGS_DATA
+from base.yolov3_mxnet.y3_utils import try_gpu, load_classes, prep_image, predict_transform, write_results
 from root_dir import IMG_DATA
 from utils.alg_utils import bb_intersection_over_union
 from utils.dtc_utils import read_anno_xml, draw_boxes, draw_boxes_simple, filter_sbox, make_line_colors, \
@@ -35,10 +36,13 @@ class YoloVerification(object):
         mkdir_if_not_exist(out_f)  # 创建文件夹
 
         self.params_path = os.path.join(MODEL_DATA, 'yolov3.weights')  # YOLO v3 权重文件
+        self.classes_path = os.path.join(CONFIGS_DATA, 'coco.names')  # 类别文件
+        self.targets_path = os.path.join(CONFIGS_DATA, 'traffic.names')
 
-        classes_path = os.path.join(CONFIGS_DATA, 'coco.names')  # 类别文件
-        self.classes_name = load_classes(classes_path)  # 加载类别目录
+        self.classes_name = load_classes(self.classes_path)  # 加载类别目录
         self.num_classes = len(self.classes_name)  # 类别数
+
+        self.targets_name = load_classes(self.targets_path)
 
         self.anchors = np.array([(10, 13), (16, 30), (33, 23), (30, 61), (62, 45),
                                  (59, 119), (116, 90), (156, 198), (373, 326)])  # anchors
@@ -66,7 +70,7 @@ class YoloVerification(object):
         else:
             print("params {} load error!".format(self.params_path))
             exit()
-        print("load params: {}".format(self.params_path))
+        print_info("加载参数: {}".format(self.params_path))
         net.hybridize()
 
         return net
@@ -124,24 +128,29 @@ class YoloVerification(object):
         """
         img_dict = format_img_and_anno(self.img_folder)
 
-        res_dict = dict()
+        res_list = []
         for count, img_name in enumerate(img_dict):
             print_info('-' * 50)
             print_info('图片: {}'.format(img_name))
             (img_p, anno_p) = img_dict[img_name]
-            _, precision, recall = self.detect_img(img_p, anno_p, self.out_folder)
-            if count == 20:
+            res_dict = self.detect_img(img_p, anno_p, self.out_folder)
+            res_list.append(res_dict)
+            if count == 10:
                 break
+        print_info('-' * 50)
 
-        ap, ar = 0, 0
-        for name in res_dict.keys():
-            precision, recall = res_dict[name]
-            ap += precision
-            ar += recall
+        for target_name in (['all'] + self.targets_name):
+            ap, ar, count = 0, 0, 0
+            for pr_dict in res_list:
+                if target_name in pr_dict:
+                    tp, tr = pr_dict[target_name]
+                    ap += tp
+                    ar += tr
+                    count += 1
+            mAp = safe_div(ap, count)
+            mAr = safe_div(ar, count)
 
-        mAp = safe_div(ap, len(res_dict.keys()))
-        mAr = safe_div(ar, len(res_dict.keys()))
-        print_info('平均精准率: {:.4f} %, 平均召回率: {:.4f} %'.format(mAp * 100, mAr * 100))
+            print_info('类: {} P: {:.4f} %, R: {:.4f} %'.format(target_name, mAp * 100, mAr * 100))
 
     def detect_img(self, img_path, xml_path, out_folder=None):
 
@@ -156,12 +165,14 @@ class YoloVerification(object):
         boxes = self.reform_boxes(boxes)
         classes = [self.classes_name[int(i)] for i in classes_no]  # 将classes的no转换为name
         boxes, scores, classes = filter_sbox((img_data.size[0], img_data.size[1]), (boxes, scores, classes))
+        boxes, scores, classes = self.keep_classes(self.targets_name, boxes, scores, classes)
         print_info('检测数: {} - {}'.format(len(boxes), classes))
 
         t_boxes, t_classes = read_anno_xml(xml_path)
         t_scores = ['T' for i in range(len(t_boxes))]
         t_boxes, t_scores, t_classes = \
             filter_sbox((img_data.size[0], img_data.size[1]), (t_boxes, t_scores, t_classes))
+        t_boxes, t_scores, t_classes = self.keep_classes(self.targets_name, t_boxes, t_scores, t_classes)
         print_info('真值数: {}'.format(len(t_boxes), t_classes))
 
         uni_classes = sorted(list(set(classes) | set(t_classes)))
@@ -179,18 +190,18 @@ class YoloVerification(object):
 
         res_dict = dict()
 
-        print('all')
-        ap, ar = self.iou_of_boxes(t_boxes, t_classes, boxes, classes)
+        # print('all')
+        print_info('交通工具')
+        ap, ar = self.iou_of_boxes(t_boxes, boxes)
         res_dict['all'] = (ap, ar)
-        print('-' * 50)
+        print_info('')
 
         for class_name in uni_classes:
-            print(class_name)
+            print_info('类别: {}'.format(class_name))
             sub_t_boxes, sub_t_classes = self.filter_class(class_name, t_boxes, t_classes)
             sub_boxes, sub_classes = self.filter_class(class_name, boxes, classes)
-            ap, ar = self.iou_of_boxes(sub_t_boxes, sub_t_classes, sub_boxes, sub_classes)
+            ap, ar = self.iou_of_boxes(sub_t_boxes, sub_boxes)
             res_dict[class_name] = (ap, ar)
-            print('-' * 50)
 
         return res_dict
 
@@ -232,6 +243,20 @@ class YoloVerification(object):
     #     return img_path, precision, recall
 
     @staticmethod
+    def keep_classes(class_names, boxes, scores, classes):
+        t_boxes, t_scores, t_classes = [], [], []
+
+        for box, score, clazz in zip(boxes, scores, classes):
+            if clazz in class_names:
+                t_boxes.append(box)
+                t_scores.append(score)
+                t_classes.append(clazz)
+            else:
+                continue
+
+        return t_boxes, t_scores, t_classes
+
+    @staticmethod
     def filter_class(clazz_name, boxes, classes):
         t_boxes, t_classes = [], []
         for box, clazz in zip(boxes, classes):
@@ -241,34 +266,41 @@ class YoloVerification(object):
         return t_boxes, t_classes
 
     @staticmethod
-    def iou_of_boxes(boxes1, classes1, boxes2, classes2):
+    def iou_of_boxes(boxes1, boxes2):
         """
         框的IOU
-        :param boxes1: 真值
-        :param classes1: 真值类别
-        :param boxes2: 预测
-        :param classes2: 预测类别
+        :param boxes1_: 真值
+        :param boxes2_: 预测
         :return: 精准和召回
         """
         res_list = []
-        for box1, class1 in zip(boxes1, classes1):
+
+        boxes1_ = copy.deepcopy(boxes1)
+        boxes2_ = copy.deepcopy(boxes2)
+
+        t1, t2 = len(boxes1_), len(boxes2_)
+
+        for box1 in boxes1_:
             final_iou = 0
             final_box = None
-            for box2, class2 in zip(boxes2, classes2):
+            for box2 in boxes2_:
                 iou = bb_intersection_over_union(box1, box2)
                 if iou > final_iou:
                     final_iou = iou
                     final_box = box2
             if final_iou > 0.5:
                 res_list.append((box1, final_box, final_iou))
+                boxes2_.remove(final_box)
 
-        t1, t2, tr = len(boxes1), len(boxes2), len(res_list)
+        tr = len(res_list)
 
         if tr == 0:  # 没有检测源, 则认为正确
             if t1 == 0 and t2 != 0:
                 recall, precision = 1.0, 0.0
             elif t1 != 0 and t2 == 0:
                 recall, precision = 0.0, 1.0
+            elif t1 != 0 and t2 != 0:
+                recall, precision = 0.0, 0.0
             else:
                 recall, precision = 1.0, 1.0
         else:
@@ -293,3 +325,6 @@ if __name__ == '__main__':
     out_f = os.path.join(IMG_DATA, 'jiaotong-0727-xxx')
     yv = YoloVerification(img_f, out_f)
     yv.verify_model()
+    # img_path = os.path.join(IMG_DATA, 'jiaotong-0727', 'K58KG2vtR6G4j2j6PLhDPn1EdEwg.jpg')
+    # xml_path = os.path.join(IMG_DATA, 'jiaotong-0727', 'K58KG2vtR6G4j2j6PLhDPn1EdEwg.xml')
+    # yv.detect_img(img_path, xml_path, out_f)

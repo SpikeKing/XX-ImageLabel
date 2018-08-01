@@ -131,7 +131,7 @@ class YoloV3(object):
         :param colors: 重新设置颜色
         :return: 绘制之后的Image图像
         """
-        print_info('框数: {}'.format(len(boxes)))  # 画框的数量
+        # print_info('框数: {}'.format(len(boxes)))  # 画框的数量
 
         if colors:
             self.colors = colors
