@@ -24,7 +24,7 @@ from root_dir import IMG_DATA
 from utils.alg_utils import bb_intersection_over_union
 from utils.dtc_utils import read_anno_xml, draw_boxes, draw_boxes_simple, filter_sbox, make_line_colors, \
     format_img_and_anno
-from utils.log_utils import print_info
+from utils.log_utils import print_info, print_ex
 from utils.project_utils import safe_div, mkdir_if_not_exist
 
 
@@ -133,7 +133,11 @@ class YoloVerification(object):
             print_info('-' * 50)
             print_info('图片: {}'.format(img_name))
             (img_p, anno_p) = img_dict[img_name]
-            res_dict = self.detect_img(img_p, anno_p, self.out_folder)
+            try:
+                res_dict = self.detect_img(img_p, anno_p, self.out_folder)
+            except Exception as e:
+                print_ex('检测异常: {}'.format(e))
+                continue
             res_list.append(res_dict)
             # if count == 10:
             #     break

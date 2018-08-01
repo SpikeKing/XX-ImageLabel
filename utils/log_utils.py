@@ -13,3 +13,12 @@ def print_info(log_str):
     :return: None
     """
     print('[Info] ' + str(log_str))
+
+
+def print_ex(log_str):
+    """
+    打印日志
+    :param log_str: 日志信息
+    :return: None
+    """
+    print('[Exception] ' + str(log_str))
