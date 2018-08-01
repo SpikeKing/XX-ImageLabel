@@ -135,8 +135,8 @@ class YoloVerification(object):
             (img_p, anno_p) = img_dict[img_name]
             res_dict = self.detect_img(img_p, anno_p, self.out_folder)
             res_list.append(res_dict)
-            if count == 10:
-                break
+            # if count == 10:
+            #     break
         print_info('-' * 50)
 
         for target_name in (['all'] + self.targets_name):
