@@ -140,6 +140,8 @@ class YoloVerification(object):
         print_info('-' * 50)
 
         for target_name in (['all'] + self.targets_name):
+            if target_name in ['truck', 'bus']:
+                continue
             ap, ar, count = 0, 0, 0
             for pr_dict in res_list:
                 if target_name in pr_dict:
@@ -157,6 +159,8 @@ class YoloVerification(object):
         color_list_1 = make_line_colors(n_color=20, alpha=0.6, bias=1.0)
         color_list_2 = make_line_colors(n_color=20, alpha=1.0, bias=0.8)
 
+        car_list = ['truck', 'bus', 'car']
+
         # img_path = os.path.join(IMG_DATA, 'jiaotong-0727', '6emekgFq0neQv8ELXmCq5aQnL3Zz.jpg')
         # xml_path = os.path.join(IMG_DATA, 'jiaotong-0727', '6emekgFq0neQv8ELXmCq5aQnL3Zz.xml')
         img_data = Image.open(img_path)
@@ -166,6 +170,7 @@ class YoloVerification(object):
         classes = [self.classes_name[int(i)] for i in classes_no]  # 将classes的no转换为name
         boxes, scores, classes = filter_sbox((img_data.size[0], img_data.size[1]), (boxes, scores, classes))
         boxes, scores, classes = self.keep_classes(self.targets_name, boxes, scores, classes)
+        classes = self.merge_classes_name(car_list, 'car', classes)
         print_info('检测数: {} - {}'.format(len(boxes), classes))
 
         t_boxes, t_classes = read_anno_xml(xml_path)
@@ -173,6 +178,7 @@ class YoloVerification(object):
         t_boxes, t_scores, t_classes = \
             filter_sbox((img_data.size[0], img_data.size[1]), (t_boxes, t_scores, t_classes))
         t_boxes, t_scores, t_classes = self.keep_classes(self.targets_name, t_boxes, t_scores, t_classes)
+        t_classes = self.merge_classes_name(car_list, 'car', t_classes)
         print_info('真值数: {}'.format(len(t_boxes), t_classes))
 
         uni_classes = sorted(list(set(classes) | set(t_classes)))
@@ -204,6 +210,16 @@ class YoloVerification(object):
             res_dict[class_name] = (ap, ar)
 
         return res_dict
+
+    @staticmethod
+    def merge_classes_name(name_list, target_name, classes_name):
+        res_list = []
+        for name in classes_name:
+            if name in name_list:
+                res_list.append(target_name)
+            else:
+                res_list.append(name)
+        return res_list
 
     # def detect_img(self, img_path, anno_path, out_folder=None):
     #     """
