@@ -5,8 +5,12 @@ Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/8/1
 """
 import os
-
+import sys
 from PIL import Image
+
+p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if p not in sys.path:
+    sys.path.append(p)
 
 from base.yolov3_mxnet.y3_class import Y3Model
 from root_dir import IMG_DATA
