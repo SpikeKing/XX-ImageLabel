@@ -38,6 +38,7 @@ def main():
         except Exception as e:
             continue
 
+        all_count += 1
         p_classes = set(tag_res.keys())
 
         _, t_classes = read_anno_xml(anno_p)
@@ -64,9 +65,11 @@ def main():
             img_box.save(os.path.join(wrong_folder, img_name + '.d.jpg'))
 
         print_info('P: {}, T: {}, {}'.format(list(p_classes), list(t_classes), '正确' if is_right else '错误'))
+        # if count == 10:
+        #     break
 
     right_ratio = safe_div(r_count, all_count)
-    print_info('准确率: {}'.format(right_ratio))
+    print_info('正确: {}, 全部: {}, 准确率: {}'.format(r_count, all_count, right_ratio))
 
 
 if __name__ == '__main__':
