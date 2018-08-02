@@ -8,6 +8,6 @@ import os
 
 from root_dir import ROOT_DIR
 
-CONFIGS_DATA = os.path.join(ROOT_DIR, 'base', 'yolov3_mxnet', 'configs')  # 模型数据
+CONFIGS = os.path.join(ROOT_DIR, 'base', 'yolov3_mxnet', 'configs')  # 模型数据
 MODEL_DATA = os.path.join(ROOT_DIR, 'base', 'yolov3_mxnet', 'model_data')  # 模型数据
 OUTPUT_DATA = os.path.join(ROOT_DIR, 'base', 'yolov3_mxnet', 'output_data')  # 输出数据

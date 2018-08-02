@@ -6,7 +6,7 @@ Created by C. L. Wang on 2018/7/23
 """
 
 
-def bb_intersection_over_union(boxA, boxB):
+def bb_intersection_over_union(boxA, boxB, thresh=0.8):
     # determine the (x, y)-coordinates of the intersection rectangle
     # 图像的交叉框
 

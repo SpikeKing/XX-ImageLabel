@@ -125,7 +125,7 @@ def predict_transform(prediction, input_dim, anchors):
     return prediction
 
 
-def write_results(prediction, num_classes, confidence=0.1, nms_conf=1.0):
+def filter_results(prediction, num_classes, confidence=0.5, nms_conf=0.5):
     # confidence = 0.01
     # print(confidence)
     # print(nms_conf)
@@ -238,7 +238,7 @@ def letterbox_image(img, inp_dim):
     return canvas
 
 
-def prep_image(img, inp_dim):
+def reform_img(img, inp_dim):
     """
     Prepare image for inputting to the neural network.
 

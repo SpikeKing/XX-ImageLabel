@@ -79,7 +79,7 @@ class YoloVerification(object):
         :return:
         """
         img_data = Image.open(img_path)
-        boxes, scores, classes = yolo.detect_image_facets(img_data)
+        boxes, scores, classes = yolo.__detect_img_facets(img_data)
         boxes = self.reform_boxes(boxes)
         print_info('检测: {}'.format(boxes))
 

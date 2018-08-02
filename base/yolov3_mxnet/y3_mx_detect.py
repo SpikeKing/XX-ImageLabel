@@ -92,11 +92,11 @@ def main():
     net.hybridize()
 
     image_data = cv2.imread(img_path)  # 读取图片数据
-    image_reform = prep_image(image_data, input_dim)
+    image_reform = reform_img(image_data, input_dim)
     image_arr = nd.array([image_reform], ctx=ctx)
     prediction = predict_transform(net(image_arr), input_dim, anchors)
 
-    pred_res = write_results(prediction, num_classes, confidence=confidence, nms_conf=nms_thresh)
+    pred_res = filter_results(prediction, num_classes, confidence=confidence, nms_conf=nms_thresh)
     boxes, scores, classes = generate_bboxes(image_data, pred_res, input_dim=input_dim)
 
     hsv_tuples = [(float(x) / len(classes_name), 1., 1.)

@@ -18,8 +18,8 @@ if p not in sys.path:
     sys.path.append(p)
 
 from base.yolov3_mxnet.darknet import DarkNet
-from base.yolov3_mxnet.dir_consts import MODEL_DATA, CONFIGS_DATA
-from base.yolov3_mxnet.y3_utils import try_gpu, load_classes, prep_image, predict_transform, write_results
+from base.yolov3_mxnet.dir_consts import MODEL_DATA, CONFIGS
+from base.yolov3_mxnet.y3_utils import try_gpu, load_classes, reform_img, predict_transform, filter_results
 from root_dir import IMG_DATA
 from utils.alg_utils import bb_intersection_over_union
 from utils.dtc_utils import read_anno_xml, draw_boxes, draw_boxes_simple, filter_sbox, make_line_colors, \
@@ -36,8 +36,8 @@ class YoloVerification(object):
         mkdir_if_not_exist(out_f)  # 创建文件夹
 
         self.params_path = os.path.join(MODEL_DATA, 'yolov3.weights')  # YOLO v3 权重文件
-        self.classes_path = os.path.join(CONFIGS_DATA, 'coco.names')  # 类别文件
-        self.targets_path = os.path.join(CONFIGS_DATA, 'traffic.names')
+        self.classes_path = os.path.join(CONFIGS, 'coco.names')  # 类别文件
+        self.targets_path = os.path.join(CONFIGS, 'traffic.names')
 
         self.classes_name = load_classes(self.classes_path)  # 加载类别目录
         self.num_classes = len(self.classes_name)  # 类别数
@@ -77,10 +77,10 @@ class YoloVerification(object):
 
     def detect_image_facets(self, img_path):
         image_data = cv2.imread(img_path)  # 读取图片数据
-        image_reform = prep_image(image_data, self.input_dim)
+        image_reform = reform_img(image_data, self.input_dim)
         image_arr = nd.array([image_reform], ctx=self.ctx)
         prediction = predict_transform(self.net(image_arr), self.input_dim, self.anchors)
-        pred_res = write_results(prediction, self.num_classes, confidence=self.confidence, nms_conf=self.nms_thresh)
+        pred_res = filter_results(prediction, self.num_classes, confidence=self.confidence, nms_conf=self.nms_thresh)
         boxes, scores, classes = self.generate_bboxes(image_data, pred_res, input_dim=self.input_dim)
         return boxes, scores, classes
 
@@ -159,7 +159,6 @@ class YoloVerification(object):
             print_info('类: {} P: {:.4f} %, R: {:.4f} %'.format(target_name, mAp * 100, mAr * 100))
 
     def detect_img(self, img_path, xml_path, out_folder=None):
-
         color_list_1 = make_line_colors(n_color=20, alpha=0.6, bias=1.0)
         color_list_2 = make_line_colors(n_color=20, alpha=1.0, bias=0.8)
 

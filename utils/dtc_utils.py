@@ -185,6 +185,25 @@ def draw_boxes_simple(image, boxes, scores, class_names, colors_dict, is_alpha=F
     return image_
 
 
+def draw_title(img_data, label_str):
+    """
+    绘制标题
+    :param img_data: 图像数据
+    :param label_str: 标签文字
+    :return: 图片数据
+    """
+    draw = ImageDraw.Draw(img_data)  # 画图
+    font = ImageFont.truetype(font=os.path.join(FONT_DATA, 'FiraMono-Medium.otf'),
+                              size=np.floor(2e-2 * img_data.size[1] + 0.5).astype('int32'))  # 字体
+    label_size = draw.textsize(label_str, font)  # 标签文字
+    text_origin = np.array([0, 0])
+    draw.rectangle([tuple(text_origin), tuple(text_origin + label_size)], fill=(255, 255, 255))  # 标签背景
+    draw.text(text_origin, label_str, fill=(0, 0, 0), font=font)  # 标签字体
+
+    del draw
+    return img_data
+
+
 def draw_boxes(image, boxes, scores, classes, colors, class_names):
     """
     在PIL.Image图像中，绘制预测框和标签
@@ -235,6 +254,34 @@ def draw_boxes(image, boxes, scores, classes, colors, class_names):
         del draw
 
     return image
+
+
+def keep_classes(class_names, boxes, scores, classes):
+    """
+    保留类, 去除其他类
+    """
+    t_boxes, t_scores, t_classes = [], [], []
+    for box, score, clazz in zip(boxes, scores, classes):
+        if clazz in class_names:
+            t_boxes.append(box)
+            t_scores.append(score)
+            t_classes.append(clazz)
+        else:
+            continue
+    return t_boxes, t_scores, t_classes
+
+
+def map_classes(merge_dict, classes_name):
+    """
+    类名映射
+    """
+    res_list = []
+    for name in classes_name:
+        if name in merge_dict:
+            res_list.append(merge_dict[name])
+        else:
+            res_list.append(name)
+    return res_list
 
 
 if __name__ == '__main__':
