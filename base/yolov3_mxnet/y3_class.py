@@ -211,12 +211,9 @@ class Y3Model(object):
         img_data = Image.open(img_path)
         img_area = img_data.size[0] * img_data.size[1]
 
-        all_ratio = 0.0
-
         for box, clazz in zip(boxes, classes):
             ratio = self.__ratio_of_boxes(img_area, box)
             tag_ratio_res[clazz] += ratio
-            all_ratio += ratio
 
         if is_img:
             str_list = []
