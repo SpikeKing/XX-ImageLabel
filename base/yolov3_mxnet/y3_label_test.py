@@ -25,9 +25,9 @@ def main():
     right_folder = os.path.join(IMG_DATA, 'jiaotong-0727-right')
     wrong_folder = os.path.join(IMG_DATA, 'jiaotong-0727-wrong')
     none_folder = os.path.join(IMG_DATA, 'jiaotong-0727-none')
-    mkdir_if_not_exist(right_folder)
-    mkdir_if_not_exist(wrong_folder)
-    mkdir_if_not_exist(none_folder)
+    mkdir_if_not_exist(right_folder, is_delete=True)
+    mkdir_if_not_exist(wrong_folder, is_delete=True)
+    mkdir_if_not_exist(none_folder, is_delete=True)
     img_dict = format_img_and_anno(img_folder)
 
     r_count = 0
@@ -77,6 +77,7 @@ def main():
                 img_box = Image.open(img_p)
             img_box.save(os.path.join(none_folder, img_name + '.d.jpg'))
             no_recall_count += 1  # 未召回
+            is_right = True
         else:  # 其他，检测错误
             if not img_box:
                 img_box = Image.open(img_p)
