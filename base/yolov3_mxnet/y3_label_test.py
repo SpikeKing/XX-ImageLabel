@@ -58,11 +58,6 @@ def main():
         img_name = img_p.split('/')[-1]
         is_right = False
 
-        if p_classes and p_classes.issubset(t_classes):
-            r_count += 1
-            img_box.save(os.path.join(right_folder, img_name + '.d.jpg'))
-            is_right = True
-
         if p_classes and p_classes.issubset(t_classes):  # 检测正确
             r_count += 1
             img_box.save(os.path.join(right_folder, img_name + '.d.jpg'))
@@ -74,6 +69,8 @@ def main():
             img_box.save(os.path.join(right_folder, img_name + '.d.jpg'))
             is_right = True
         elif not p_classes and t_classes:  # 检测为空，实际有类
+            if not img_box:
+                img_box = Image.open(img_p)
             img_box.save(os.path.join(none_folder, img_name + '.d.jpg'))
             no_recall_count += 1  # 未召回
         else:  # 其他，检测错误
