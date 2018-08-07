@@ -42,9 +42,13 @@ def main():
         except Exception as e:
             continue
 
-        for tag in tag_res:
+        w_tags = []
+        for tag in tag_res.keys():
             if tag_res[tag] <= 0.01:
-                tag_res.pop(tag, None)  # 小于1%的类别
+                print_info('删除Tag {} {}'.format(tag, tag_res[tag]))
+                w_tags.append(tag)
+        for tag in w_tags:
+            tag_res.pop(tag, None)  # 小于1%的类别
 
         all_count += 1
         p_classes = set(tag_res.keys())
