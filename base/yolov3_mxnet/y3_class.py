@@ -201,7 +201,7 @@ class Y3Model(object):
             return {}, None
 
     def process_traffic(self, boxes, scores, classes, img_path, target_names, is_img):
-        merge_dict = {'truck': 'car', 'bus': 'car', 'car': 'car', 'motorbike': 'bicycle'}
+        merge_dict = {'truck': 'car', 'bus': 'car', 'car': 'car'}
         classes = self.__map_classes(merge_dict, classes)  # 合并类别
         boxes, scores, classes = self.__nms_boxes(boxes, scores, classes)
 

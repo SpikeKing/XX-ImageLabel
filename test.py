@@ -8,23 +8,31 @@ Created by C. L. Wang on 2018/7/31
 from PIL import Image, ImageDraw
 
 
+def pad_image(image, target_size):
+    iw, ih = image.size  # 原始图像的尺寸
+    w, h = target_size  # 目标图像的尺寸
+    scale = min(float(w) / float(iw), float(h) / float(ih))  # 转换的最小比例
+
+    # 保证长或宽，至少一个符合目标图像的尺寸
+    nw = int(iw * scale)
+    nh = int(ih * scale)
+
+    image = image.resize((nw, nh), Image.BICUBIC)  # 缩小图像
+    image.save('kkk.jpg')
+    new_image = Image.new('RGB', target_size, (128, 128, 128))  # 生成灰色图像
+    # // 为整数除法，计算图像的位置
+    new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))  # 将图像填充为中间图像，两侧为灰色的样式
+    # new_image.show()
+    new_image.save('aaa.jpg')
+
+    return new_image
+
+
 def main():
-    im = Image.new("RGBA", (800, 800))
-    draw = ImageDraw.Draw(im)
-    draw.rectangle((0, 0, 200, 200), fill=(255, 0, 0, 128))
-    draw.rectangle((400, 400, 600, 600), fill=(255, 0, 0))
-
-    im2 = Image.new("RGBA", (800, 800))
-    draw2 = ImageDraw.Draw(im2)
-    draw2.rectangle((100, 100, 300, 300), fill=(0, 255, 0, 128))
-    draw2.rectangle((500, 500, 700, 700), fill=(0, 255, 0))
-
-    # merge two images using blend
-    blend = Image.blend(im, im2, 0.5)
-    # drawf = ImageDraw.Draw(blend)
-    # drawf.rectangle((500, 100, 600, 200), fill=(255, 0, 0))
-    # drawf.rectangle((600, 200, 700, 300), fill=(0, 255, 0))
-    blend.show()
+    img_path = '/Users/wang/workspace/XX-ImageLabel/img_data/logAll/NvXing_145.jpg'
+    image = Image.open(img_path)
+    size = (416, 416)
+    pad_image(image, size)  # 填充图像
 
 
 if __name__ == '__main__':

@@ -54,7 +54,7 @@ def main():
         p_classes = set(tag_res.keys())
 
         _, t_classes = read_anno_xml(anno_p)
-        merge_dict = {'truck': 'car', 'bus': 'car', 'car': 'car', 'motorbike': 'bicycle'}  # 合并类别
+        merge_dict = {'truck': 'car', 'bus': 'car', 'car': 'car'}  # 合并类别
         t_classes = map_classes(merge_dict, t_classes)  # 合并类别
         traffic_names = ['bicycle', 'car', 'motorbike', 'aeroplane', 'bus', 'train', 'truck', 'boat']
         t_classes = set(t_classes) & set(traffic_names)
@@ -77,6 +77,7 @@ def main():
                 img_box = Image.open(img_p)
             img_box.save(os.path.join(none_folder, img_name + '.d.jpg'))
             no_recall_count += 1  # 未召回
+            r_count += 1
             is_right = True
         else:  # 其他，检测错误
             if not img_box:
