@@ -117,3 +117,5 @@ face/yolov3/model_data/
 face/yolov3/output_data/
 base/yolov3_mxnet/model_data/
 base/yolov3_mxnet/output_data/
+
+nlps/txt_data/

@@ -11,6 +11,7 @@ Created by C. L. Wang on 2018/7/9
 
 import collections
 import os
+import io
 import random
 import shutil
 import sys
@@ -63,14 +64,15 @@ def traverse_dir_files(root_dir, ext=None):
     return paths_list, names_list
 
 
-def sort_two_list(list1, list2):
+def sort_two_list(list1, list2, reverse=False):
     """
     排序两个列表
     :param list1: 列表1
     :param list2: 列表2
+    :param reverse: 逆序
     :return: 排序后的两个列表
     """
-    list1, list2 = (list(t) for t in zip(*sorted(zip(list1, list2))))
+    list1, list2 = (list(t) for t in zip(*sorted(zip(list1, list2), reverse=reverse)))
     return list1, list2
 
 
@@ -456,7 +458,7 @@ def write_line(file_name, line):
     """
     if file_name == "":
         return
-    with open(file_name, "a+") as fs:
+    with io.open(file_name, "a+", encoding='utf8') as fs:
         if type(line) is (tuple or list):
             fs.write("%s\n" % ", ".join(line))
         else:
@@ -559,3 +561,14 @@ def batch(iterable, n=1):
     l = len(iterable)
     for ndx in range(0, l, n):
         yield iterable[ndx:min(ndx + n, l)]
+
+
+def unicode_str(s):
+    """
+    将字符串转换为unicode
+    :param s: 字符串
+    :return: unicode字符串
+    """
+    if not isinstance(s, unicode):  # 转换为unicode编码
+        s = unicode(s, "utf-8")
+    return s
