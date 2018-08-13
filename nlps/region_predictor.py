@@ -5,7 +5,6 @@ Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/8/10
 """
 
-import os
 import string
 
 from nlps.city_keywords import CHN_CITY_LIST, WORLD_CITY_LIST
@@ -58,21 +57,13 @@ class RegionPredictor(object):
         for wc_key in wc_dict:  # 检测重复词汇, 将词与城市对应
             words = wc_dict[wc_key]
             if len(words) != 1:
-                RegionPredictor.print_ex(u'重复词汇: {}'.format(wc_key))
-                RegionPredictor.print_ex(u'出现于 %s' % list_2_utf8(words))
+                # print_ex_u(u'重复词汇: {}'.format(wc_key))
+                # print_ex_u(u'出现于 %s' % list_2_utf8(words))
                 raise Exception(u'重复词汇, 请删除!')
             else:
                 wc_dict[wc_key] = words[0]
-        RegionPredictor.print_into(u'词汇数: %s, 城市数: %s' % (len(wc_dict.keys()), len(cw_dict.keys())))
+        # print_info('词汇数: %s, 城市数: %s' % (len(wc_dict.keys()), len(cw_dict.keys())))
         return cw_dict, wc_dict
-
-    @staticmethod
-    def print_into(s):
-        print(u'[Info] %s' % s)
-
-    @staticmethod
-    def print_ex(s):
-        print(u'[Exception] %s' % s)
 
     @staticmethod
     def merge_spaces(content):
@@ -82,6 +73,14 @@ class RegionPredictor(object):
         for v_word in self.ex_words:
             content = content.replace(v_word, u"")
         return content
+
+    @staticmethod
+    def get_sub_cities(city_name):
+        if city_name in CHN_CITY_LIST:
+            return CHN_CITY_LIST[city_name]
+        if city_name in WORLD_CITY_LIST:
+            return WORLD_CITY_LIST[city_name]
+        return []
 
     @staticmethod
     def analyze_cities(c_weights, c_cities):
@@ -99,7 +98,7 @@ class RegionPredictor(object):
                 sub_weights.append(c_index)
 
         def_city = c_cities[0]
-        print(u'默认: {}'.format(def_city))
+        # print(u'默认: {}'.format(def_city))
         # print(u'一级: {}, 二级: {}'.format(list_2_utf8(up_cities), list_2_utf8(sub_cities)))
 
         if not up_cities or not sub_cities:  # 只有一个直接返回默认
@@ -107,22 +106,24 @@ class RegionPredictor(object):
 
         up_city = up_cities[0]
         sub_city = sub_cities[0]
-        print(u'一级: {}, 二级: {}'.format(up_city, sub_city))
+        # print(u'一级: {}, 二级: {}'.format(up_city, sub_city))
 
-        # if def_city == sub_city:
-        #     return sub_city
-        # elif def_city == up_city:
-        #     if sub_city.decode('utf8') in get_sub_cities(up_city):
-        #         return sub_city
-        #     else:
-        #         return up_city
-        # else:
-        #     return def_city
+        up_subs = RegionPredictor.get_sub_cities(up_city)  # 获取子集
+
+        if def_city == sub_city:  # 如果为1级则返回
+            return sub_city
+        elif def_city == up_city:  # 如果为1级
+            if sub_city in up_subs:  # 判断2级是不是子类
+                return sub_city  # 返回2级
+            else:
+                return up_city
+        else:
+            return def_city
 
     def predict(self, content):
         content = unicode_str(content)
         # print(u'{} {}'.format(type(content), content))
-        cid, content = content.split(',', 1)
+        # cid, content = content.split(',', 1)
         # print(u'{} {}'.format(cid, content))
         content = self.filter_pnc_and_num(content)
         # print(u'{}'.format(content))
@@ -140,13 +141,17 @@ class RegionPredictor(object):
                 c_weights.append((safe_div(1, nw), iw))  # 1/的目的是改变单调性
         # print(u'{} {}'.format(list_2_utf8(c_words), list_2_utf8(c_weights)))
         c_cities = [unicode_str(self.wc_dict[w]) for w in c_words]
-        print(u'{} {}'.format(list_2_utf8(c_cities), list_2_utf8(c_weights)))
-        self.analyze_cities(c_weights, c_cities)
+        # print(u'{} {}'.format(list_2_utf8(c_cities), list_2_utf8(c_weights)))
+        if not c_weights or not c_cities:  # 没有关键词
+            return []
+        r_city = self.analyze_cities(c_weights, c_cities)
+        print(u'最终城市: {}'.format(r_city))
+        return [r_city]  # 返回城市
 
 
 def main():
     rp = RegionPredictor()
-    rp.predict('6430405880479220737,三亚最适合潜水的海岛，终于来啦分界洲岛位于海南岛的东南方向是三亚最适宜潜水、观赏海底世界的海岛，也被很多人称为'
+    rp.predict('三亚最适合潜水的海岛，终于来啦分界洲岛位于海南岛的东南方向是三亚最适宜潜水、观赏海底世界的海岛，也被很多人称为'
                '是“心灵的分界岛”、“坠落红尘的天堂”、“一个可以发呆的地方” 乘船过渡单程大概需要15分钟左右岛上有座红白相间的标志物'
                '灯塔景色特别美，远处有山海水虽然已经挺深了，但依旧是蓝的特别清透，站在岸上都能看到很多热带鱼和螃蟹，因为能见度很高，'
                '所以海岛的潜水是个不能错过的项目凹岛上的客流量相对于不是很多，所以不要担心人挤人哈哈，一定要坐观光车来到山顶，一览'
