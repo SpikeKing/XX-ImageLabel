@@ -10,7 +10,8 @@ import string
 
 from nlps.city_keywords import CHN_CITY_LIST, WORLD_CITY_LIST
 from nlps.nlp_dir import TXT_DATA
-from utils.project_utils import read_file, unicode_str, traverse_dir_files, sort_two_list, safe_div
+from utils.project_utils import read_file, unicode_str, traverse_dir_files, sort_two_list, safe_div, list_2_utf8, \
+    sort_dict_by_value
 
 
 class RegionPredictor(object):
@@ -35,7 +36,7 @@ class RegionPredictor(object):
         for c in ch_punctuation:
             s = s.replace(c, u" ")
         for c in num_punctuation:
-            s = s.replace(c, u" ")
+            s = s.replace(c, u"")  # 数字直接去除
         return s
 
     @staticmethod
@@ -73,6 +74,8 @@ class RegionPredictor(object):
             if len(words) != 1:
                 # print_ex_u(u'重复词汇: {}'.format(wc_key))
                 # print_ex_u(u'出现于 %s' % list_2_utf8(words))
+                print(list_2_utf8(words))
+                print(wc_key)
                 raise Exception(u'重复词汇, 请删除!')
             else:
                 wc_dict[wc_key] = words[0]
@@ -162,7 +165,6 @@ class RegionPredictor(object):
         :param regions: 城市列表
         :return: 当前城市
         """
-
         r_up, r_sub = [], []
         for region in regions:  # 真实
             region = unicode_str(region)
@@ -207,17 +209,113 @@ class RegionPredictor(object):
             return False
         return set(r2_final).issubset(r1_final)  # 返回子集
 
-    def predict(self, content):
+    def find_key_content(self, content):
+        content = unicode_str(content)
+        words = [u'坐落于', u'地址：', u'就要登陆', u'地址:']
+
+        content_key = u""
+        for word in words:
+            key_idx = content.find(word)  # 关键部分
+            if key_idx != -1:
+                end_idx = min(len(content) - key_idx, 50)
+                content_key += content[key_idx:key_idx + end_idx] + u" "
+
+        return content_key
+
+    def predict(self, content, is_debug=False):
+        content_key = self.find_key_content(content)
+
+        if is_debug:
+            res_dict, details = self.predict_w(content, is_debug)
+            res_dict_key, details_key = self.predict_w(content_key, is_debug)
+
+            if res_dict_key.get('regions', None):
+                return res_dict_key, details_key
+            else:
+                return res_dict, details
+        else:
+            res_dict = self.predict_w(content)
+            res_dict_key = self.predict_w(content_key)
+
+            if res_dict_key.get('regions', None):
+                return res_dict_key
+            else:
+                return res_dict
+
+    def filter_keywords(self, c_words, c_weights):
+        c_cities = []
+        if not c_words or not c_weights:
+            return c_cities, c_weights
+
+        c_words, c_weights = sort_two_list(c_words, c_weights)  # 排序
+        c_cities = [unicode_str(self.wc_dict[w]) for w in c_words]
+
+        # print(list_2_utf8(c_words))
+        # print(c_weights)
+        # print(list_2_utf8(c_cities))
+
+        remove_words = []  # 删除词汇
+
+        # 获取需要删除的词汇
+        for word1, weight1, city1 in zip(c_words, c_weights, c_cities):
+            for word2, weight2, city2 in zip(c_words, c_weights, c_cities):
+                if word1 == word2:
+                    continue
+                elif (word1 in word2) and (city1 != city2):
+                    remove_words.append(word1)
+            # print(list_2_utf8([word1, weight1, city1]))
+
+        # 重置数据
+        t_words, t_weights, t_cities = [], [], []
+        for word, weight, city in zip(c_words, c_weights, c_cities):
+            if word in remove_words:
+                continue
+            t_words.append(word)
+            t_weights.append(weight)
+            t_cities.append(city)
+
+        # print(list_2_utf8(t_words))
+        # print(t_weights)
+        # print(list_2_utf8(t_cities))
+
+        city_dict = dict()  # 城市集
+        for weight, city in zip(t_weights, t_cities):  # 词
+            if city not in city_dict:
+                city_dict[city] = weight
+                continue
+            num = 1. / weight[0]
+            pos = weight[1]
+            c_weight = city_dict[city]
+            c_num = 1. / c_weight[0]
+            c_pos = c_weight[1]
+            city_dict[city] = (1. / (num + c_num), min(pos, c_pos))
+
+        city_dict_list = sort_dict_by_value(city_dict, reverse=False)  # 重排序
+
+        r_cities, r_weights = [], []
+        for (city, weight) in city_dict_list:
+            r_cities.append(city)
+            r_weights.append(weight)
+
+        # print(r_weights)
+        # print(list_2_utf8(r_cities))
+
+        return r_cities, r_weights
+
+    def predict_w(self, content, is_debug=False):
         """
         预测内容的城市
         :param content: 内容
+        :param is_debug: 调试
         :return: 城市字典
         """
         content = unicode_str(content)
+
         # print(u'{} {}'.format(type(content), content))
         # cid, content = content.split(',', 1)
         # print(u'{} {}'.format(cid, content))
         content = self.__filter_pnc_and_num(content)
+
         # print(u'{}'.format(content))
         content = self.__merge_spaces(content)
         # print(u'{}'.format(content))
@@ -231,14 +329,22 @@ class RegionPredictor(object):
             if iw != -1 and nw != 0:
                 c_words.append(k_word)
                 c_weights.append((safe_div(1, nw), iw))  # 1/的目的是改变单调性
+
         # print(u'{} {}'.format(list_2_utf8(c_words), list_2_utf8(c_weights)))
-        c_cities = [unicode_str(self.wc_dict[w]) for w in c_words]
+        c_cities, c_weights = self.filter_keywords(c_words, c_weights)
         # print(u'{} {}'.format(list_2_utf8(c_cities), list_2_utf8(c_weights)))
         if not c_weights or not c_cities:  # 没有关键词
+            if is_debug:
+                return {}, []
             return {}
         r_city = self.analyze_cities(c_weights, c_cities)
-        print(u'最终城市: {}'.format(r_city))
+
+        # print(u'最终城市: {}'.format(r_city))
         res_dict = {"regions": [r_city]}
+
+        if is_debug:
+            return res_dict, zip(c_cities, c_weights)
+
         return res_dict  # 返回城市
 
 
@@ -258,7 +364,9 @@ def test_is_equal():
 
 def main():
     rp = RegionPredictor()
-    rp.predict(u'三亚最适合潜水的海岛，终于来啦分界洲岛位于海南岛的东南方向是三亚最适宜潜水、观赏海底世界的海岛，也被很多人称为')
+    rp.predict(
+        u'台湾卤肉饭好吃得想哭呐几年前在南京西路吃过半山小馆，如今移驾长宁来福士，名字后面还多了个小尾巴PLUS。装修风格升级成复古小清新流派，远处望去以为是家咖啡馆。周末生意有些冷清，但不影响我重温当年半山味道的好兴致。像三杯鸡、菠萝油条虾、卤肉饭、绵绵冰等都是台湾菜的经典招牌。我最喜欢卤肉饭，灵魂酱汁与饭粒完美交融后的湿润微甜，再加上卤肉飘香阵阵，对不住了我得先行一步。#探店#')
+
     # '是“心灵的分界岛”、“坠落红尘的天堂”、“一个可以发呆的地方” 乘船过渡单程大概需要15分钟左右岛上有座红白相间的标志物'
     # '灯塔景色特别美，远处有山海水虽然已经挺深了，但依旧是蓝的特别清透，站在岸上都能看到很多热带鱼和螃蟹，因为能见度很高，'
     # '所以海岛的潜水是个不能错过的项目凹岛上的客流量相对于不是很多，所以不要担心人挤人哈哈，一定要坐观光车来到山顶，一览'
@@ -268,4 +376,4 @@ def main():
 
 
 if __name__ == '__main__':
-    test_is_equal()
+    main()

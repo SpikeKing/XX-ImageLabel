@@ -57,8 +57,39 @@ def process_data():
     print_info_u(u'平均准确率: {}, 标签个数: {}'.format(safe_div(right_count, data_count), len(cities_list)))
 
 
+def process_city(city_path):
+    city_name = unicode_str(city_path.split('/')[-1])
+    rp = RegionPredictor()
+
+    data_lines = read_file(city_path)
+    a_count = len(data_lines)  # 总数
+    r_count = 0
+
+    for data_line in data_lines:
+        cities, details = rp.predict(data_line, True)
+
+        if not cities:
+            print_info_u(data_line)
+            print_info_u(list_2_utf8(details))
+            continue
+
+        city = cities['regions'][0]
+        sub_cities = rp.get_sub_cities(city_name)
+
+        if city == city_name or city in sub_cities:
+            r_count += 1
+        else:
+            print_info_u(data_line)
+            print_info_u(list_2_utf8(details))
+
+    rate = safe_div(r_count, a_count) * 100
+    print_info_u(u'{} 正确率: {} %'.format(city_name, rate))
+
+
 def main():
     process_data()
+    # city_path = os.path.join(TXT_DATA, 'raws', 'cities', '广东')
+    # process_city(city_path)
 
 
 if __name__ == '__main__':
