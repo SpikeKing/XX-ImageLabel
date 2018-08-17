@@ -21,6 +21,7 @@ def process_data():
 
     cities_dict = dict()
     data_count = 0  # 总的测试数据
+    right_count = 0
 
     for path, name in zip(path_list, name_list):
         name = unicode_str(name)
@@ -29,18 +30,18 @@ def process_data():
         r_count = 0  # 正确的数量
         a_count = len(data_lines)  # 总数
 
-        data_count += a_count
-
         for data_line in data_lines:
             cities = rp.predict(data_line)
             if not cities:  # 检测为空
                 continue
-            city = cities[0]
+            city = cities['regions'][0]
             sub_cities = rp.get_sub_cities(name)
             if city == name or city in sub_cities:
                 r_count += 1
             # print(city)
 
+        right_count += r_count
+        data_count += a_count
         rate = safe_div(r_count, a_count) * 100
         # print_info_u(u'{} 正确率: {} %'.format(name, rate))
         cities_dict[name] = rate
@@ -48,8 +49,12 @@ def process_data():
     cities_list = sort_dict_by_value(cities_dict)
     print_info_u(u'测试数据条目: {}'.format(data_count))
     print_info_u(u'标签数量: {}'.format(len(cities_list)))
+    sum_rate = 0.0
     for name, rate in cities_list:
         print_info_u(u'{} 正确率: {} %'.format(name, rate))
+        sum_rate += rate
+
+    print_info_u(u'平均准确率: {}, 标签个数: {}'.format(safe_div(right_count, data_count), len(cities_list)))
 
 
 def main():

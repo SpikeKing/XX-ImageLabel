@@ -570,5 +570,8 @@ def unicode_str(s):
     :return: unicode字符串
     """
     if not isinstance(s, unicode):  # 转换为unicode编码
-        s = unicode(s, "utf-8")
+        # s = unicode(s, "utf-8")
+        # print(type(s))
+        s = s.decode('utf-8')
+        # print(type(s))
     return s

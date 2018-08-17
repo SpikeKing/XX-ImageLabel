@@ -13,7 +13,7 @@ def remove_verbose_words(content):
     verbose_words = ["威尼斯水城", "东方威尼斯", "桂林米粉", "长沙发", "墨西哥餐厅", "越南菜", "台湾腔", "马来西亚朋友",
                      "德国啤酒", "巴黎铁塔", "纽约INS网黄游乐场", "香港黑帮老大", "英国的Space NK", "日本料理", "武汉菜",
                      "布拉格的这本生活方式杂志", "意大利餐厅", "日本限定新品体验会", "土耳其菜", "土耳其餐厅", "新加坡餐厅",
-                     "台湾美食"]
+                     "台湾美食", "意大利风味", "意大利料理"]
     for v_word in verbose_words:
         content = content.replace(v_word, "")
     return content
@@ -191,12 +191,12 @@ def process_feed(tag_file, all_file):
 
 
 def main():
-    # tag_file = os.path.join(TXT_DATA, 'raws', 'cities', '上海')
-    file_list, name_list = traverse_dir_files(os.path.join(TXT_DATA, 'raws', 'cities'))
+    tag_file = os.path.join(TXT_DATA, 'raws', 'cities', '上海')
+    # file_list, name_list = traverse_dir_files(os.path.join(TXT_DATA, 'raws', 'cities'))
     # print(len(file_list))
     all_file = os.path.join(TXT_DATA, 'all_raws')
-    for tag_file in file_list:
-        process_feed(tag_file=tag_file, all_file=all_file)
+    # for tag_file in file_list:
+    process_feed(tag_file=tag_file, all_file=all_file)
     print('-' * 50)
 
 
