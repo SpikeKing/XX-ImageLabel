@@ -119,3 +119,4 @@ base/yolov3_mxnet/model_data/
 base/yolov3_mxnet/output_data/
 
 nlps/txt_data/
+contents/data/

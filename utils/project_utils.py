@@ -20,6 +20,7 @@ from datetime import timedelta, datetime
 
 # reload(sys)  # 重置系统参数
 # sys.setdefaultencoding('utf8')  # 避免编码错误
+from werkzeug._compat import izip
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 if p not in sys.path:
@@ -30,8 +31,6 @@ import json
 import os
 import re
 import operator
-
-from itertools import izip
 
 FORMAT_DATE = '%Y%m%d'
 FORMAT_DATE_2 = '%Y-%m-%d'
@@ -87,14 +86,14 @@ def mkdir_if_not_exist(dir_name, is_delete=False):
         if is_delete:
             if os.path.exists(dir_name):
                 shutil.rmtree(dir_name)
-                print '[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name
+                print('[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name)
 
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
-            print '[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name
+            print('[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name)
         return True
     except Exception as e:
-        print '[Exception] %s' % e
+        print('[Exception] %s' % e)
         return False
 
 
@@ -133,11 +132,11 @@ def create_folder(atp_out_dir):
     """
     if os.path.exists(atp_out_dir):
         shutil.rmtree(atp_out_dir)
-        print '文件夹 "%s" 存在，删除文件夹。' % atp_out_dir
+        print('文件夹 "%s" 存在，删除文件夹。' % atp_out_dir)
 
     if not os.path.exists(atp_out_dir):
         os.makedirs(atp_out_dir)
-        print '文件夹 "%s" 不存在，创建文件夹。' % atp_out_dir
+        print('文件夹 "%s" 不存在，创建文件夹。' % atp_out_dir)
 
 
 def create_file(file_name):
@@ -147,10 +146,10 @@ def create_file(file_name):
     :return: None
     """
     if os.path.exists(file_name):
-        print "文件存在，删除文件：%s" % file_name
+        print("文件存在，删除文件：%s" % file_name)
         os.remove(file_name)  # 删除已有文件
     if not os.path.exists(file_name):
-        print "文件不存在，创建文件：%s" % file_name
+        print("文件不存在，创建文件：%s" % file_name)
         open(file_name, 'a').close()
 
 
@@ -160,13 +159,13 @@ def remove_punctuation(line):
     :param line:
     :return:
     """
-    rule = re.compile(ur"[^a-zA-Z0-9\u4e00-\u9fa5]")
+    rule = re.compile(u"[^a-zA-Z0-9\u4e00-\u9fa5]")
     line = rule.sub('', line)
     return line
 
 
 def check_punctuation(word):
-    pattern = re.compile(ur"[^a-zA-Z0-9\u4e00-\u9fa5]")
+    pattern = re.compile(u"[^a-zA-Z0-9\u4e00-\u9fa5]")
     if pattern.search(word):
         return True
     else:
@@ -381,19 +380,6 @@ def list_has_sub_str(string_list, sub_str):
     return False
 
 
-def list_has_index(index_list, sub_index):
-    """
-    判断sub_index是否在索引列表中
-    :param index_list: 索引列表(start_index, end_index)
-    :param sub_index: 索引
-    :return: 是否在其中
-    """
-    for start_index, end_index in grouped(index_list, 2):
-        if start_index <= sub_index <= end_index:
-            return True
-    return False
-
-
 def remove_last_char(str_value, num):
     """
     删除最后的字符串
@@ -481,7 +467,7 @@ def show_string(obj):
     :param obj: 输入对象, 可以是列表或字典
     :return: None
     """
-    print list_2_utf8(obj)
+    print(list_2_utf8(obj))
 
 
 def list_2_utf8(obj):
@@ -569,9 +555,8 @@ def unicode_str(s):
     :param s: 字符串
     :return: unicode字符串
     """
-    if not isinstance(s, unicode):  # 转换为unicode编码
-        # s = unicode(s, "utf-8")
-        # print(type(s))
+    try:
         s = s.decode('utf-8')
-        # print(type(s))
+    except Exception as e:
+        s = s
     return s
