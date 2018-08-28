@@ -4,6 +4,9 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/8/21
 """
+from itertools import chain
+
+from utils.project_utils import unicode_str
 
 CONTENT_TAGS = {
     u'护肤': [
@@ -83,6 +86,39 @@ SUB_CONTENT_TAGS = {
     u'运动': [u'游泳', u'极限运动', u'瑜伽', u'滑板', u'潜水'],
     u'生活物品': [u'好物安利', u'新品推荐'],
 }
+
+
+def unicode_list(data_list):
+    """
+    将list转换为unicode list
+    :param data_list: 数量列表
+    :return: unicode列表
+    """
+    return [unicode_str(s) for s in data_list]
+
+
+def traverse_tags():
+    """
+    遍历全部标签
+    :return: 标签列表
+    """
+    one_level = unicode_list(list(CONTENT_TAGS.keys()))
+    two_level = unicode_list(list(chain.from_iterable(CONTENT_TAGS.values())))
+
+    ot_error = set(one_level) & set(two_level)
+    if ot_error:
+        raise Exception('一级和二级标签重复!')
+
+    one_two_level = one_level + two_level
+    three_level = unicode_list(list(chain.from_iterable(SUB_CONTENT_TAGS.values())))
+    oth_error = set(one_two_level) & set(three_level)
+    if oth_error:
+        raise Exception('三级标签重复! %s' % oth_error)
+
+    all_tags = one_two_level + three_level
+    print('标签数量: {}'.format(len(all_tags)))
+
+    return all_tags
 
 # XIAOGUO_DICT = {u'效果': [
 #     u'补水', u'角质', u'美白', u'修复', u'祛斑',

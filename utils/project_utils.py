@@ -556,7 +556,7 @@ def unicode_str(s):
     :return: unicode字符串
     """
     try:
-        s = s.decode('utf-8')
+        s = str(s, 'utf-8')
     except Exception as e:
         s = s
     return s

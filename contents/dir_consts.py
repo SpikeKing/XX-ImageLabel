@@ -9,4 +9,6 @@ import os
 from root_dir import ROOT_DIR
 
 DATA_DIR = os.path.join(ROOT_DIR, 'contents', 'data')
+
 KEYWORDS_DIR = os.path.join(ROOT_DIR, 'contents', 'data', 'keywords')
+SAMPLES_DIR = os.path.join(ROOT_DIR, 'contents', 'data', 'samples')
