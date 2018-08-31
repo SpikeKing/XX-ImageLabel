@@ -5,18 +5,13 @@ Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/7/9
 """
 
-import os
-import sys
 import argparse
+import os
 import shutil
-import requests
+from datetime import datetime
 from multiprocessing.pool import Pool
 
-from datetime import datetime
-
-p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if p not in sys.path:
-    sys.path.append(p)
+import requests
 
 
 def get_current_time_str():
@@ -114,7 +109,7 @@ def write_line(file_name, line):
     """
     if file_name == "":
         return
-    with open(file_name, "a+") as fs:
+    with open(file_name, "a+", encoding='utf8') as fs:
         if type(line) is (tuple or list):
             fs.write("%s\n" % ", ".join(line))
         else:
@@ -127,7 +122,7 @@ def print_info(log_str):
     :param log_str: 日志信息
     :return: None
     """
-    log_str = '[Info {}] {}'.format(get_current_time_str(), str(log_str))
+    log_str = u'[Info {}] {}'.format(get_current_time_str(), str(log_str))
     write_line(logfile, log_str)
     print(log_str)
 
@@ -203,6 +198,7 @@ def read_file(data_file, mode='more'):
                 return output
             elif mode == 'more':
                 output = f.readlines()
+                output = [o.strip() for o in output]
                 return output
             else:
                 return list()

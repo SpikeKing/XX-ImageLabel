@@ -405,7 +405,8 @@ def read_file(data_file, mode='more'):
                 return output
             elif mode == 'more':
                 output = f.readlines()
-                return map(str.strip, output)
+                output = [o.strip() for o in output]
+                return output
             else:
                 return list()
     except IOError:
@@ -424,7 +425,8 @@ def read_file_utf8(data_file, mode='more'):
                 return output
             elif mode == 'more':
                 output = f.readlines()
-                return map(str.strip, output)
+                output = [o.strip() for o in output]
+                return output
             else:
                 return list()
     except IOError:
