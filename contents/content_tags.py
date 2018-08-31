@@ -6,7 +6,7 @@ Created by C. L. Wang on 2018/8/21
 """
 from itertools import chain
 
-from utils.project_utils import unicode_str
+from utils.project_utils import unicode_list
 
 CONTENT_TAGS = {
     u'护肤': [
@@ -58,7 +58,6 @@ CONTENT_TAGS = {
     u'文物': [],
     u'艺术': [u'建筑设计', u'书法', u'画画'],
     u'明星': [u'明星发布', u'粉丝追星', u'八卦资讯'],
-
 }
 
 SUB_CONTENT_TAGS = {
@@ -72,7 +71,7 @@ SUB_CONTENT_TAGS = {
         u'假睫毛', u'双眼皮贴', u'化妆刷', u'粉扑', u'睫毛夹',
         u'其他'
     ],
-    u'美体效果': [u'身体美白', u'角质', u'脱毛', u'妊娠纹'],
+    u'美体效果': [u'身体美白', u'脱毛', u'妊娠纹'],
     u'饮品店': [u'奶茶', u'果蔬饮品', u'茶', u'咖啡', u'冰品', u'糖水', u'酒'],
     u'教程': [u'中餐教程', u'西餐教程', u'烘焙教程', u'饮品教程'],
     u'记录': [
@@ -86,15 +85,6 @@ SUB_CONTENT_TAGS = {
     u'运动': [u'游泳', u'极限运动', u'瑜伽', u'滑板', u'潜水'],
     u'生活物品': [u'好物安利', u'新品推荐'],
 }
-
-
-def unicode_list(data_list):
-    """
-    将list转换为unicode list
-    :param data_list: 数量列表
-    :return: unicode列表
-    """
-    return [unicode_str(s) for s in data_list]
 
 
 def traverse_tags():
@@ -118,40 +108,13 @@ def traverse_tags():
     all_tags = one_two_level + three_level
     print('标签数量: {}'.format(len(all_tags)))
 
-    return all_tags
+    return unicode_list(all_tags)
 
-# XIAOGUO_DICT = {u'效果': [
-#     u'补水', u'角质', u'美白', u'修复', u'祛斑',
-#     u'毛孔', u'抗衰', u'祛痘'
-# ]}
-#
-# YANYING_DICT = {u'眼影': [u'眼影推荐', u'眼影试色']}
-#
-# KOUHONG_DICT = {u'口红': [u'口红推荐', u'口红试色']}
-#
-# HUAZHUANGGONGJU_DICT = {u'化妆工具': [
-#     u'假睫毛', u'双眼皮贴', u'化妆刷', u'粉扑', u'睫毛夹',
-#     u'其他'
-# ]}
-#
-# MEITICXIAOGUO_DICT = {u'美体效果': [u'身体美白', u'角质', u'脱毛', u'妊娠纹']}
-#
-# YINPIN_DICT = {u'饮品店': [u'奶茶', u'果蔬饮品', u'茶', u'咖啡', u'冰品', u'糖水', u'酒']}
-#
-# JIAOCHENG_DICT = {u'教程': [u'中餐教程', u'西餐教程', u'烘焙教程', u'饮品教程']}
-#
-# JILU_DICT = {u'记录': [
-#     u'东南亚菜', u'火锅', u'甜品', u'海鲜', u'水果',
-#     u'小吃零食', u'印度菜', u'西餐', u'韩餐', u'日料',
-#     u'饮品', u'中餐', u'烧烤', u'黑暗料理'
-# ]}
-#
-# GONGLUE_DICT = {u'攻略': [u'旅行路线', u'旅行常识']}
-#
-# SHOUJUBU_DICT = {u'瘦局部': [u'瘦胳膊', u'瘦腰腹', u'瘦腿', u'瘦脸']}
-#
-# SHENTISUXING_DICT = {u'身体塑性': [u'肩颈', u'背部', u'臂部', u'拉伸']}
-#
-# YUNDONG_DICT = {u'运动': [u'游泳', u'极限运动', u'瑜伽', u'滑板', u'潜水']}
-#
-# SHENGHUOYONGPIN_DICT = {u'生活物品': [u'好物安利', u'新品推荐']}
+
+def main():
+    all_tags = traverse_tags()
+    print(len(all_tags))
+
+
+if __name__ == '__main__':
+    main()

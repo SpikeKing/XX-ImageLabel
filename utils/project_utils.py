@@ -20,6 +20,8 @@ from datetime import timedelta, datetime
 
 # reload(sys)  # 重置系统参数
 # sys.setdefaultencoding('utf8')  # 避免编码错误
+from itertools import chain
+
 from werkzeug._compat import izip
 
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -410,6 +412,25 @@ def read_file(data_file, mode='more'):
         return list()
 
 
+def read_file_utf8(data_file, mode='more'):
+    """
+    读文件, 原文件和数据文件
+    :return: 单行或数组
+    """
+    try:
+        with open(data_file, 'r', encoding='utf8') as f:
+            if mode == 'one':
+                output = f.read()
+                return output
+            elif mode == 'more':
+                output = f.readlines()
+                return map(str.strip, output)
+            else:
+                return list()
+    except IOError:
+        return list()
+
+
 def find_word_position(original, word):
     """
     查询字符串的位置
@@ -560,3 +581,21 @@ def unicode_str(s):
     except Exception as e:
         s = s
     return s
+
+
+def unfold_nested_list(data_list):
+    """
+    展开嵌套的list
+    :param data_list: 数据list
+    :return: 展开list
+    """
+    return list(chain.from_iterable(data_list))
+
+
+def unicode_list(data_list):
+    """
+    将list转换为unicode list
+    :param data_list: 数量列表
+    :return: unicode列表
+    """
+    return [unicode_str(s) for s in data_list]
