@@ -121,3 +121,4 @@ base/yolov3_mxnet/output_data/
 nlps/txt_data/
 contents/data/
 img_hash/data/
+sh_venv.sh
