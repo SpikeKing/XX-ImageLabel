@@ -143,14 +143,14 @@ def mkdir_if_not_exist(dir_name, is_delete=False):
         if is_delete:
             if os.path.exists(dir_name):
                 shutil.rmtree(dir_name)
-                print '[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name
+                print('[Info] 文件夹 "%s" 存在, 删除文件夹.' % dir_name)
 
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
-            print '[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name
+            print('[Info] 文件夹 "%s" 不存在, 创建文件夹.' % dir_name)
         return True
     except Exception as e:
-        print '[Exception] %s' % e
+        print('[Exception] %s' % e)
         return False
 
 
