@@ -11,7 +11,7 @@ p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if p not in sys.path:
     sys.path.append(p)
 
-from img_hash.dir_const import IMGS_DATA, DATA_DIR
+from img_hash.dir_const import DATA_DIR, IMGS_DATA_1024
 from utils.project_utils import *
 
 
@@ -25,7 +25,7 @@ def read_tag_imgs(file_path):
 
 
 def main():
-    pathes, names = traverse_dir_files(IMGS_DATA)
+    pathes, names = traverse_dir_files(IMGS_DATA_1024)
 
     train_path = os.path.join(DATA_DIR, 'img_tags_train.txt')
     val_path = os.path.join(DATA_DIR, 'img_tags_val.txt')
