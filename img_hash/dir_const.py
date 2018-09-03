@@ -9,3 +9,4 @@ import os
 from root_dir import ROOT_DIR
 
 DATA_DIR = os.path.join(ROOT_DIR, 'img_hash', 'data')
+IMGS_DATA = os.path.join(DATA_DIR, 'imgs_data')
