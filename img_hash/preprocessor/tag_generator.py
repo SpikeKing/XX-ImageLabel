@@ -59,16 +59,33 @@ def up_tags(c_tags):
 
 def main():
     file_path = os.path.join(DATA_DIR, 'hot_content-2018-08-30-18001412.txt')
-    out_path = os.path.join(DATA_DIR, 'img_tags.txt')
-    create_file(out_path)
+
+    train_path = os.path.join(DATA_DIR, 'img_tags_train.txt')
+    val_path = os.path.join(DATA_DIR, 'img_tags_val.txt')
+    test_path = os.path.join(DATA_DIR, 'img_tags_test.txt')
+    create_file(train_path)
+    create_file(val_path)
+    create_file(test_path)
+
     lines = read_file_utf8(file_path)
-    for line in lines:
+    print('Feed数: {}'.format(len(lines)))  # 总数11989
+    random.shuffle(lines)  # 洗牌
+    for count, line in enumerate(lines):
+
         [cid, imgs, tags_str, _] = line.split('---', 3)
         tags = tags_str.split(',')
         f_tags = up_tags(tags)
         imgs_name = [img.split('/')[-1] for img in imgs.split(',')]
+
+        if count < 8000:
+            w_path = train_path
+        elif 8000 <= count < 10000:
+            w_path = test_path
+        else:
+            w_path = val_path
+
         for n_img in imgs_name:
-            write_line(out_path, n_img + "---" + ','.join(f_tags) + "---" + cid)
+            write_line(w_path, n_img + "---" + ','.join(f_tags) + "---" + cid)
 
 
 if __name__ == '__main__':
