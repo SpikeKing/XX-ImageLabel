@@ -6,6 +6,13 @@ Created by C. L. Wang on 2018/8/31
 """
 import copy
 
+import os
+import sys
+
+p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if p not in sys.path:
+    sys.path.append(p)
+
 from contents.content_tags import SUB_CONTENT_TAGS, CONTENT_TAGS
 from img_hash.dir_const import DATA_DIR
 from utils.project_utils import *
