@@ -7,6 +7,12 @@ Created by C. L. Wang on 2018/9/4
 import os
 import numpy as np
 import mxnet as mx
+import sys
+
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if p not in sys.path:
+    sys.path.append(p)
+
 from mxnet import autograd, nd
 from mxnet.gluon import Trainer
 from mxnet.gluon.data import DataLoader
@@ -116,7 +122,7 @@ def train_model():
             acc, nr, na = get_batch_acc(outputs, labels)
             total_right += nr
             total_all += na
-            
+
             if i != 0:  # batch 0 doesn't have train_loss.
                 print('batch: %s, loss: %s, acc: %s' % (i, train_loss / i, acc))
             else:
