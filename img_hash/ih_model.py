@@ -99,14 +99,13 @@ def get_train_data(batch_size=8):
 def get_configs():
     cf = ConfigParser()
     cf.read(os.path.join(ROOT_DIR, 'img_hash', 'ih_configs.conf'))
-    n_gpu = int(cf.get("net", "n_gpu"))
-    batch_size = int(cf.get("net", "batch_size"))
-    return {'n_gpu': n_gpu, 'batch_size': batch_size}
+    is_gpu = cf.getboolean("net", "is_gpu")
+    batch_size = cf.getint("net", "batch_size")
+    return {'is_gpu': is_gpu, 'batch_size': batch_size}
 
 
-def get_context(n_gpu):
-    # ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
-    ctx = mx.gpu(0)
+def get_context(is_gpu):
+    ctx = mx.gpu(0) if is_gpu > 0 else mx.cpu()
     return ctx
 
 
@@ -114,11 +113,11 @@ def train_model():
     epochs = 5
 
     configs = get_configs()
-    n_gpu = configs['n_gpu']
+    is_gpu = configs['is_gpu']
     batch_size = configs['batch_size']
-    ctx = get_context(n_gpu)
+    ctx = get_context(is_gpu)
 
-    print("n_gpu: {}, batch_size: {}".format(n_gpu, batch_size))
+    print("gpu: {}, batch_size: {}".format(is_gpu, batch_size))
 
     base_net = get_base_net(ctx=ctx)
 
