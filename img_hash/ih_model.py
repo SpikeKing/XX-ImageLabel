@@ -130,10 +130,10 @@ def train_model():
         train_loss = 0  # 训练loss
         total_right, total_all = 0, 0
         for i, batch in enumerate(train_data):
-            data, labels = batch[0].as_in_context(ctx), batch[1].astype('float32').as_in_context(ctx)
+            data, labels = batch[0], batch[1].astype('float32')
 
             with autograd.record():
-                outputs = base_net(data)
+                outputs = base_net(data.as_in_context(ctx))
                 loss = loss_func(outputs, labels)
 
             loss.backward()
