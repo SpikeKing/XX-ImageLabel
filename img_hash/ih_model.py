@@ -67,14 +67,12 @@ def get_data_path():
     return img_folder, img_file
 
 
-def train_model():
-    epochs = 5
-
-    base_net = get_base_net(ctx=mx.cpu())
-    trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-3})
-
-    loss_func = SigmoidBinaryCrossEntropyLoss()
-
+def get_train_data(batch_size=8):
+    """
+    process train data, add transforms.
+    :param batch_size: per process num of samples
+    :return: train data
+    """
     transform_train = transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomFlipLeftRight(),
@@ -84,18 +82,29 @@ def train_model():
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
 
-    # train data
-    batch_size = 8
     img_folder, img_file = get_data_path()
     td = TripletDataset(data_folder=img_folder, data_file=img_file)
-
     train_data = DataLoader(td.transform_first(transform_train), batch_size=batch_size, shuffle=True)
+    return train_data
+
+
+def train_model():
+    epochs = 5
+
+    base_net = get_base_net(ctx=mx.cpu())
+
+    trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-3})
+    loss_func = SigmoidBinaryCrossEntropyLoss()
+
+    batch_size = 8
+    train_data = get_train_data(batch_size=batch_size)  # train data
 
     for epoch in range(epochs):
         train_loss = 0  # 训练loss
         total_right, total_all = 0, 0
         for i, batch in enumerate(train_data):
             data, labels = batch[0], batch[1].astype('float32')
+
             with autograd.record():
                 outputs = base_net(data)
                 loss = loss_func(outputs, labels)
@@ -107,6 +116,7 @@ def train_model():
             acc, nr, na = get_batch_acc(outputs, labels)
             total_right += nr
             total_all += na
+            
             if i != 0:  # batch 0 doesn't have train_loss.
                 print('batch: %s, loss: %s, acc: %s' % (i, train_loss / i, acc))
             else:
