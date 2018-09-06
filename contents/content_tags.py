@@ -51,7 +51,7 @@ CONTENT_TAGS = {
     u'宠物': [u'宠物用品', u'养宠常识', u'宠物互动', u'宠物日常'],
     u'书籍': [u'书籍推荐', u'原创故事'],
     u'二次元': [u'cosplay', u'古风汉服', u'动漫推荐', u'手办周边', u'二次元常识'],
-    u'影视综艺': [u'电影推荐', u'电视剧推荐', u'综艺推荐', u'预告咨询', u'影评解读', u'杂谈'],
+    u'影视综艺': [u'电影推荐', u'电视剧推荐', u'综艺推荐', u'预告资讯', u'影评解读', u'杂谈'],
     u'美容': [],
     u'手工': [],
     u'玩具': [],
@@ -112,8 +112,9 @@ def traverse_tags():
 
 
 def main():
-    all_tags = traverse_tags()
-    print(len(all_tags))
+    # all_tags = traverse_tags()
+    # print(len(all_tags))
+    print(len(CONTENT_TAGS.keys()))
 
 
 if __name__ == '__main__':
