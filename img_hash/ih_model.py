@@ -133,7 +133,9 @@ def train_model():
         for i, batch in enumerate(train_data):
             data, labels = batch[0], batch[1].astype('float32')
 
-            data = data.as_in_context(ctx)
+            data = data.as_in_context(context=ctx)
+            labels = labels.as_in_context(context=ctx)
+            
             with autograd.record():
                 outputs = base_net(data)
                 loss = loss_func(outputs, labels)
