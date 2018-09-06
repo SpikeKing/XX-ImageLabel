@@ -115,15 +115,14 @@ def train_model():
     configs = get_configs()
     n_gpu = configs['n_gpu']
     batch_size = configs['batch_size']
+    ctx = get_context(n_gpu)
 
     print("n_gpu: {}, batch_size: {}".format(n_gpu, batch_size))
 
-
-    base_net = get_base_net(ctx=get_context(n_gpu))
+    base_net = get_base_net(ctx=ctx)
 
     trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-3})
     loss_func = SigmoidBinaryCrossEntropyLoss()
-
 
     train_data = get_train_data(batch_size=batch_size)  # train data
 
@@ -131,7 +130,7 @@ def train_model():
         train_loss = 0  # 训练loss
         total_right, total_all = 0, 0
         for i, batch in enumerate(train_data):
-            data, labels = batch[0], batch[1].astype('float32')
+            data, labels = batch[0].as_in_context(ctx), batch[1].astype('float32').as_in_context(ctx)
 
             with autograd.record():
                 outputs = base_net(data)
