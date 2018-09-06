@@ -105,7 +105,8 @@ def get_configs():
 
 
 def get_context(n_gpu):
-    ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
+    # ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
+    ctx = mx.gpu(0)
     return ctx
 
 
