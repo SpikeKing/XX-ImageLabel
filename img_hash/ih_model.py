@@ -101,7 +101,6 @@ def get_configs():
     cf.read(os.path.join(ROOT_DIR, 'img_hash', 'ih_configs.conf'))
     n_gpu = int(cf.get("net", "n_gpu"))
     batch_size = int(cf.get("net", "batch_size"))
-    print("GPU数: {}".format(n_gpu))
     return {'n_gpu': n_gpu, 'batch_size': batch_size}
 
 
@@ -115,12 +114,17 @@ def train_model():
 
     configs = get_configs()
     n_gpu = configs['n_gpu']
+    batch_size = configs['batch_size']
+
+    print("n_gpu: {}, batch_size: {}".format(n_gpu, batch_size))
+
+
     base_net = get_base_net(ctx=get_context(n_gpu))
 
     trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-3})
     loss_func = SigmoidBinaryCrossEntropyLoss()
 
-    batch_size = configs['batch_size']
+
     train_data = get_train_data(batch_size=batch_size)  # train data
 
     for epoch in range(epochs):
