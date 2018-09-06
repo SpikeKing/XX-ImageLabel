@@ -96,16 +96,16 @@ def get_train_data(batch_size=8):
     return train_data
 
 
-def get_gpu_num():
+def get_configs():
     cf = ConfigParser()
     cf.read(os.path.join(ROOT_DIR, 'img_hash', 'ih_configs.conf'))
-    n_gpu = int(cf.get("net", "gpu"))
+    n_gpu = int(cf.get("net", "n_gpu"))
+    batch_size = int(cf.get("net", "batch_size"))
     print("GPU数: {}".format(n_gpu))
-    return n_gpu
+    return {'n_gpu': n_gpu, 'batch_size': batch_size}
 
 
-def get_context():
-    n_gpu = get_gpu_num()
+def get_context(n_gpu):
     ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
     return ctx
 
@@ -113,12 +113,14 @@ def get_context():
 def train_model():
     epochs = 5
 
-    base_net = get_base_net(ctx=get_context())
+    configs = get_configs()
+    n_gpu = configs['n_gpu']
+    base_net = get_base_net(ctx=get_context(n_gpu))
 
     trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-3})
     loss_func = SigmoidBinaryCrossEntropyLoss()
 
-    batch_size = 8
+    batch_size = configs['batch_size']
     train_data = get_train_data(batch_size=batch_size)  # train data
 
     for epoch in range(epochs):
