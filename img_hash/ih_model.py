@@ -5,6 +5,8 @@ Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/9/4
 """
 import os
+from configparser import ConfigParser
+
 import numpy as np
 import mxnet as mx
 import sys
@@ -29,7 +31,7 @@ from root_dir import ROOT_DIR
 from utils.project_utils import safe_div
 
 
-def get_base_net(ctx=mx.cpu()):
+def get_base_net(ctx):
     """
     获取base net，默认是mobilenet v2
     :param ctx: 运行环境，cpu or gpu，默认cpu
@@ -94,10 +96,24 @@ def get_train_data(batch_size=8):
     return train_data
 
 
+def get_gpu_num():
+    cf = ConfigParser()
+    cf.read(os.path.join(ROOT_DIR, 'img_hash', 'ih_configs.conf'))
+    n_gpu = int(cf.get("net", "gpu"))
+    print("GPU数: {}".format(n_gpu))
+    return n_gpu
+
+
+def get_context():
+    n_gpu = get_gpu_num()
+    ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
+    return ctx
+
+
 def train_model():
     epochs = 5
 
-    base_net = get_base_net(ctx=mx.cpu())
+    base_net = get_base_net(ctx=get_context())
 
     trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-3})
     loss_func = SigmoidBinaryCrossEntropyLoss()
