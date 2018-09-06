@@ -105,8 +105,8 @@ def get_configs():
 
 
 def get_context(n_gpu):
-    ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
-    # ctx = mx.gpu(0)
+    # ctx = [mx.gpu(int(i)) for i in range(n_gpu)] if n_gpu > 0 else [mx.cpu()]
+    ctx = mx.gpu(0)
     return ctx
 
 
@@ -133,8 +133,8 @@ def train_model():
         for i, batch in enumerate(train_data):
             data, labels = batch[0], batch[1].astype('float32')
 
-            data = data.as_in_context(context=ctx[0])
-            labels = labels.as_in_context(context=ctx[1])
+            data = data.as_in_context(context=ctx)
+            labels = labels.as_in_context(context=ctx)
 
             with autograd.record():
                 outputs = base_net(data)
