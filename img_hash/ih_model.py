@@ -26,7 +26,7 @@ from mxnet.initializer import Xavier
 from mxnet.ndarray import sigmoid
 
 from img_hash.dir_const import DATA_DIR
-from img_hash.ih_dataloader import TripletDataset
+from img_hash.ih_dataloader import MultilabelDataset
 from root_dir import ROOT_DIR
 from utils.project_utils import safe_div
 
@@ -91,7 +91,7 @@ def get_train_data(batch_size=8):
     ])
 
     img_folder, img_file = get_data_path()
-    td = TripletDataset(data_folder=img_folder, data_file=img_file)
+    td = MultilabelDataset(data_folder=img_folder, data_file=img_file)
     train_data = DataLoader(td.transform_first(transform_train), batch_size=batch_size, shuffle=True)
     return train_data
 
