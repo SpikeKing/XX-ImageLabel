@@ -122,4 +122,4 @@ nlps/txt_data/
 contents/data/
 img_hash/data/
 sh_venv.sh
-img_hash/ih_configs.conf
+img_hash/configs.conf
