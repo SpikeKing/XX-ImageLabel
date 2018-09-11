@@ -197,8 +197,9 @@ class MultiLabelTrainer(object):
                 final_i = i
                 break
 
+            sp_batch = len(outputs)
             self.print_info('validation: batch: {}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
-                            .format(i, br, bp, bf1))
+                            .format(i, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
             # r, p, f1 = self.metric_of_rpf(outputs, labels)
             # e_r += r
             # e_p += p
