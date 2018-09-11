@@ -74,7 +74,7 @@ class MultiLabelTrainer(object):
     def get_context(is_gpu):
         # ctx = mx.gpu(0) if is_gpu > 0 else mx.cpu()  # 选择CPU或GPU
         if is_gpu:
-            num_gpus = 4
+            num_gpus = 3
         else:
             num_gpus = -1
         ctx = [mx.gpu(i) for i in range(num_gpus)] if num_gpus > 0 else [mx.cpu()]
@@ -272,8 +272,9 @@ class MultiLabelTrainer(object):
                 e_p += bp
                 e_f1 += bf1
 
+                sp_batch = len(outputs)
                 self.print_info('batch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
-                                .format(i, batch_loss, br, bp, bf1))
+                                .format(i, batch_loss, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
 
             n_batch = safe_div(len(train_data), self.batch_size)
             e_loss /= n_batch
