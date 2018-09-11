@@ -4,20 +4,15 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/9/4
 """
-import matplotlib
-from mxnet.gluon.data.vision import transforms
 
-matplotlib.use('TkAgg')
-
+import mxnet as mx
 import numpy as np
+
 from mxnet.gluon.data import dataset
 from mxnet.image import image
 
 from contents.content_tags import CONTENT_TAGS
-from img_hash.dir_const import DATA_DIR
-from root_dir import ROOT_DIR
 from utils.project_utils import *
-import matplotlib.pyplot as plt
 
 
 class TripletDataset(dataset.Dataset):
@@ -27,11 +22,18 @@ class TripletDataset(dataset.Dataset):
     """
 
     def __init__(self, data_folder=None, data_file=None, transform=None, saved_path=None):
+        """
+        构造器。
+        :param data_folder: 数据文件夹
+        :param data_file: 数据文件
+        :param transform: 数据扩充
+        :param saved_path: 已计算的TripletLoss对，加快速度
+        """
         self._flag = 1  # 彩色图片
         self.class_names = list(CONTENT_TAGS.keys())  # 全部类别, 27个类别
-        self.print_info(self.class_names)
+        self._print_info(self.class_names)
 
-        if data_file:
+        if data_file:  # 加载数据文件
             self.data_file = data_file  # 图片和标签的文本
             self.np_saved = os.path.join(data_file + ".tp.npz")
 
@@ -50,7 +52,7 @@ class TripletDataset(dataset.Dataset):
             self._load_pairs()  # 加载pair组
 
     @staticmethod
-    def print_info(s):
+    def _print_info(s):
         """
         打印INFO信息
         """
@@ -60,11 +62,13 @@ class TripletDataset(dataset.Dataset):
         """
         图片个数
         """
-        return len(self.items)
+        num = len(self.tp_list[0])
+        self._print_info('样本数: {}'.format(num))
+        return num
 
     def get_class_names(self):
         """
-        列表
+        类别列表
         """
         return self.class_names
 
@@ -73,16 +77,6 @@ class TripletDataset(dataset.Dataset):
         类别数
         """
         return len(self.class_names)
-
-    def _show_tags(self, oh_label):
-        """
-        将oh的label转换为中文
-        :param oh_label: oh标签
-        :return: 打印
-        """
-        tags_idxes = np.where(oh_label == 1)[0]
-        tags_names = self.get_class_names()
-        self.print_info([tags_names[i] for i in tags_idxes])
 
     def _create_pairs(self):
         """
@@ -102,7 +96,7 @@ class TripletDataset(dataset.Dataset):
                 label_index_dict[idx].append(i)
 
         data_list, label_list = [], []
-        self.print_info('创建三元组列表开始...')
+        self._print_info('创建三元组列表开始...')
 
         start_time = time.time()
         for i, item in enumerate(self.items):
@@ -136,11 +130,11 @@ class TripletDataset(dataset.Dataset):
             label_list.append(label_pair)
 
             if (i + 1) % 100 == 0:
-                self.print_info('tl count: {}'.format(i))
+                self._print_info('tl count: {}'.format(i))
                 break
 
         elapsed_time = time.time() - start_time
-        self.print_info('耗时: {:.2f} 秒'.format(elapsed_time))
+        self._print_info('耗时: {:.2f} 秒'.format(elapsed_time))
         self.tp_list = [data_list, label_list]  # 由data和label的list组成
 
         np.savez(self.np_saved, data=data_list, labels=label_list)  # 数据执行较慢，存储起来，复用
@@ -149,7 +143,7 @@ class TripletDataset(dataset.Dataset):
         """
         列出图片数据
         """
-        self.print_info('类别数: {}'.format(len(self.class_names)))
+        self._print_info('类别数: {}'.format(len(self.class_names)))
 
         pathes, names = traverse_dir_files(self.data_folder)
         name_path_dict = dict(zip(names, pathes))
@@ -175,7 +169,7 @@ class TripletDataset(dataset.Dataset):
             if name in name_path_dict.keys():
                 self.items.append((name_path_dict[name], oh_label))
 
-        self.print_info('样本数: {}'.format(len(self.items)))
+        self._print_info('样本数: {}'.format(len(self.items)))
 
     def _load_pairs(self):
         """
@@ -197,34 +191,63 @@ class TripletDataset(dataset.Dataset):
             img = image.imread(self.items[img_idx][0], self._flag)
             label = l_pair[idx]
             if self._transform is not None:
-                print(img.shape)
                 img, label = self._transform(img), label
+            img = mx.nd.expand_dims(img, axis=0)  # 增加1维，设置图片
             imgs.append(img)
             labels.append(label)
 
-        return imgs, labels
+        data = mx.nd.concatenate(imgs, axis=0)  # 增加1维，设置图片
+        labels = mx.nd.array(labels)
+
+        return data, labels
 
 
 class MultilabelDataset(dataset.Dataset):
+    """
+    Multilabel的数据集
+    """
+
     def __init__(self, data_folder=None, data_file=None, transform=None):
+        """
+        构造器
+        :param data_folder: 数据文件夹
+        :param data_file: 数据文件
+        :param transform: 转换器
+        """
         self._flag = 1  # 彩色图片
         self.class_names = list(CONTENT_TAGS.keys())  # 全部类别, 27个类别
 
-        self.data_file = data_file  # label file
-        self.data_folder = data_folder  # img folder
+        self.data_file = data_file  # 数据文件
+        self.data_folder = data_folder  # 图片文件夹
 
         self.items = []
         self._transform = transform
         self._list_images()
 
+    @staticmethod
+    def _print_info(s):
+        """
+        打印INFO信息
+        """
+        print('[Info] {}'.format(s))
+
     def __len__(self):
+        """
+        样本数
+        """
         return len(self.items)
 
     def get_n_class(self):
+        """
+        类别数
+        """
         return len(self.class_names)
 
     def _list_images(self):
-        print('category num: {}'.format(len(self.class_names)))
+        """
+        转换为多标签的样本
+        """
+        self._print_info('类别数: {}'.format(len(self.class_names)))
 
         pathes, names = traverse_dir_files(self.data_folder)
         name_path_dict = dict(zip(names, pathes))
@@ -250,84 +273,14 @@ class MultilabelDataset(dataset.Dataset):
                 oh_label[index] = 1
             if name in name_path_dict.keys():
                 self.items.append((name_path_dict[name], oh_label))  # item包含图片和标签
-        print('num of data: {}'.format(len(self.items)))
+        self._print_info('样本数: {}'.format(len(self.items)))
 
     def __getitem__(self, idx):
+        """
+        迭代器
+        """
         img = image.imread(self.items[idx][0], self._flag)
         label = self.items[idx][1]
         if self._transform is not None:
             return self._transform(img, label)
         return img, label
-
-
-def show_tags(td, data):
-    tags_idxes = np.where(data == 1)[0]
-    tags_names = td.get_class_names()
-    print([tags_names[i] for i in tags_idxes])
-
-
-def test_of_triplet_loss():
-    up_folder = os.path.abspath(os.path.join(ROOT_DIR, '..'))
-    img_folder = os.path.join(up_folder, 'data_set', 'XX-ImageLabel', 'train_data_416')
-    img_file = os.path.join(DATA_DIR, "t_img_tags_train.txt")  # 数据类别
-    img_saved = os.path.join(img_file + ".tp.npz")
-
-    td = TripletDataset(data_folder=img_folder, data_file=img_file, saved_path=img_saved)
-    for count, data in enumerate(td):
-        # print(data[0][0])
-        if count == 4:
-            plt.subplot(131)
-            plt.imshow(data[0][0].asnumpy())
-            show_tags(td, data[1][0])
-            plt.subplot(132)
-            plt.imshow(data[0][1].asnumpy())
-            show_tags(td, data[1][1])
-            plt.subplot(133)
-            plt.imshow(data[0][2].asnumpy())
-            show_tags(td, data[1][2])
-            plt.show()
-            # print(data)
-            break
-
-
-def test_of_trans():
-    transformer = transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.RandomFlipLeftRight(),
-        transforms.RandomColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),
-        transforms.RandomLighting(0.1),
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-    ])
-
-    up_folder = os.path.abspath(os.path.join(ROOT_DIR, '..'))
-    img_folder = os.path.join(up_folder, 'data_set', 'XX-ImageLabel', 'train_data_416')
-    img_file = os.path.join(DATA_DIR, "t_img_tags_train.txt")  # 数据类别
-    img_saved = os.path.join(img_file + ".tp.npz")
-
-    td = TripletDataset(data_folder=img_folder, data_file=img_file, saved_path=img_saved, transform=transformer)
-    # td = TripletDataset(data_folder=img_folder, data_file=img_file, saved_path=img_saved)
-
-    for count, data in enumerate(td):
-        # print(data[0][0])
-        if count == 3:
-            plt.subplot(131)
-            plt.imshow(data[0][0].asnumpy())
-            show_tags(td, data[1][0])
-            plt.subplot(132)
-            plt.imshow(data[0][1].asnumpy())
-            show_tags(td, data[1][1])
-            plt.subplot(133)
-            plt.imshow(data[0][2].asnumpy())
-            show_tags(td, data[1][2])
-            plt.show()
-            # print(data)
-            break
-
-
-def main():
-    test_of_trans()
-
-
-if __name__ == '__main__':
-    main()
