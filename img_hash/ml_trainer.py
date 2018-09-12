@@ -174,12 +174,9 @@ class MultiLabelTrainer(object):
         final_i = 0
         for i, batch in enumerate(val_data):
             data, labels = batch[0], batch[1].astype('float32')
-            # data = data.as_in_context(context=self.ctx)
-            # labels = labels.as_in_context(context=self.ctx)
-            data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)
+            data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)  # 多GPU
             labels = split_and_load(labels, ctx_list=self.ctx, batch_axis=0, even_split=False)
 
-            # outputs = net(data)
             outputs = [net(X) for X in data]
 
             br, bp, bf1 = 0, 0, 0
