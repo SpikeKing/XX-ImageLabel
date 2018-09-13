@@ -6,9 +6,8 @@ Created by C. L. Wang on 2018/8/9
 """
 import os
 
-from img_downloader.img_comp import mkdir_if_not_exist
 from nlps.nlp_dir import TXT_DATA
-from utils.project_utils import write_line
+from utils.project_utils import write_line, mkdir_if_not_exist
 
 CHN_CITY_LIST = {
     u'北京': [],
@@ -38,7 +37,7 @@ CHN_CITY_LIST = {
     u'福建': [
         u'泉州', u'漳州', u'宁德', u'龙岩', u'福州',
         u'厦门'],
-    u'内蒙古': [u'呼伦浩特', u'呼伦贝尔'],
+    u'内蒙古': [u'呼和浩特', u'呼伦贝尔'],
     u'安徽': [u'合肥'],
     u'江苏': [
         u'无锡', u'苏州', u'扬州', u'镇江', u'常州',

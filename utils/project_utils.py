@@ -433,6 +433,26 @@ def read_file_utf8(data_file, mode='more'):
         return list()
 
 
+def read_file_gb2312(data_file, mode='more'):
+    """
+    读文件, 原文件和数据文件
+    :return: 单行或数组
+    """
+    try:
+        with open(data_file, 'r', encoding='gb2312') as f:
+            if mode == 'one':
+                output = f.read()
+                return output
+            elif mode == 'more':
+                output = f.readlines()
+                output = [o.strip() for o in output]
+                return output
+            else:
+                return list()
+    except IOError:
+        return list()
+
+
 def find_word_position(original, word):
     """
     查询字符串的位置
