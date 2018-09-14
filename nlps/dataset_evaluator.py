@@ -76,6 +76,8 @@ def load_error_case():
     data_lines = read_file_utf8(file_name)
     city_id_dict = dict()
     for data_line in data_lines:
+        if not data_line:
+            continue
         city, id = data_line.split(',')
         if city not in city_id_dict:
             city_id_dict[city] = set()
@@ -124,7 +126,7 @@ def process_city(city_path):
 
 def main():
     # process_data()
-    city_path = os.path.join(TXT_DATA, 'raws', 'cities', '张家口')
+    city_path = os.path.join(TXT_DATA, 'raws', 'cities', '巴黎')
     process_city(city_path)
 
 

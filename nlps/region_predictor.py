@@ -143,6 +143,18 @@ class RegionPredictor(object):
                 sub_cities.append(c_city)
                 sub_weights.append(c_index)
         def_city = c_cities[0]
+
+        if sub_cities and sub_weights:
+            for c, (sc, sw) in enumerate(zip(sub_cities, sub_weights)):
+                for uc, uw in zip(up_cities, up_weights):
+                    up_subs = RegionPredictor.get_sub_cities(uc)  # 获取子集
+                    if sc in up_subs:
+                        (s, w1) = sw
+                        (u, w2) = uw
+                        sw = (1 / (1 / s + 1 / u), min(w1, w2))
+                        sub_weights[c] = sw
+
+            sub_weights, sub_cities = sort_two_list(sub_weights, sub_cities)
         # print(u'默认: {}'.format(def_city))
         # print(u'一级: {}, 二级: {}'.format(list_2_utf8(up_cities), list_2_utf8(sub_cities)))
         if not up_cities or not sub_cities:  # 只有一个直接返回默认
@@ -219,11 +231,16 @@ class RegionPredictor(object):
         content_key = u""
         b_len = 5
         for word in words:
-            key_idx = content.find(word)  # 关键部分
-            if key_idx != -1:
-                idx_len = min(len(content) - key_idx, 50)
-                start_idx = max(0, key_idx - b_len)
-                content_key += content[start_idx:start_idx + idx_len + b_len] + u" "
+            # key_idx = content.findall(word)  # 关键部分
+            key_idxes = []
+            for match in re.finditer(str(word), content):
+                key_idxes.append(match.start())
+            if key_idxes:  # 关键词出现多次
+                # print('info: {}'.format(word))
+                for key_idx in key_idxes:
+                    idx_len = min(len(content) - key_idx, 50)
+                    start_idx = max(0, key_idx - b_len)
+                    content_key += content[start_idx:start_idx + idx_len + b_len] + u" "
         return content_key
 
     def predict(self, content, is_debug=False):
@@ -342,7 +359,7 @@ def test_is_equal():
 def main():
     rp = RegionPredictor()
     res = rp.predict(
-        u'韩国 | 在仁川转机不如在仁川睡一夜初到韩国的那天，我到达仁川机场已经是夜里11点。据说仁川机场里很多可以休息的地方，所以就没有预定酒店，却无奈的发现这大半夜的自己已经迷迷糊糊的跟着人群走出了机场。机场里面的酒店和休息室进不去，机场旁边的酒店贵到离谱，进也不是退也不是的情形让我慌了神。眼看就要12点了，而我今晚可能无家可归，于是打开手机，立马预定了一家叫Incheon Airport Hotel Hue的民宿，折合人民币不到500元。好在机场工作人员帮我打了个车，又花了近100人民币走到这间不太好找的民宿。民宿的主人是一位大叔，半夜里，为我开了门，“阿美离肯？”“no，Chinese。”“噢~掐尼丝。”机场过夜临时定的一间房，没想到住的最安静的海边，面朝大海，有大大的落地窗，有Loft两层的大空间，每一处装点得干净体面。清晨醒来，大叔已经起床打扫，大叔英文不好，却坚持跟我一直对话聊天，热情的带我去旁边的小店吃自助早餐，还转了一圈海边和花园。阴雨的仁川，还有骑手策马奔跑，第一天的尴尬和无奈在两人勉强进行的聊天中消失的无影无踪。快到中午的时候，在下面的主路上坐上公交车，挥手与大叔道别，前往首尔。民宿地址：51-29 Mashiran-ro, Jung-gu, 仁川国际机场, 仁川, 韩国'
+        u'你大概不知道，最好吃的韩国料理不在韩国而在中国东北。虽然国内固然家家都标榜本人是正宗的，假如只是普通吃吃到是还好，但如果和韩国外乡的餐厅比起来，那仍是有差异的，这类差异不止是口感，更多体如今食材上。但是在东北的吉林这地域，在外地餐厅吃到的韩餐，比在韩国首尔、济州岛等地吃到的愈加甘旨。吉林延边是我国独一的朝鲜族自治州，朝族人数占总人数的百分之37.7。走在延边地域的街道上，一切修建的标识、市肆的门头号，基本上都是用两种言语来标注的。正宗的韩国摒挡，不会用任何的化学添加剂，考究用最复杂的烹调来凸起食品的本'
     )
     print(json.dumps(res, ensure_ascii=False))
 

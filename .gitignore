@@ -119,7 +119,9 @@ base/yolov3_mxnet/model_data/
 base/yolov3_mxnet/output_data/
 
 nlps/txt_data/
+nlps/data_merger/data
 contents/data/
 img_hash/data/
 sh_venv.sh
 img_hash/configs.conf
+nlps/txt_data_wcl.zip
