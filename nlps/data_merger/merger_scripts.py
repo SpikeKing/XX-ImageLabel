@@ -111,7 +111,9 @@ def merge_cities():
 
 
 def main():
-    merge_cities()
+    # merge_cities()
+    merge_error_ids()
+    ex_words_merge()
 
 
 if __name__ == '__main__':
