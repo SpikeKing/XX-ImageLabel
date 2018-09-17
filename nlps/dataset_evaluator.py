@@ -125,9 +125,9 @@ def process_city(city_path):
 
 
 def main():
-    # process_data()
-    city_path = os.path.join(TXT_DATA, 'raws', 'cities', '巴黎')
-    process_city(city_path)
+    process_data()
+    # city_path = os.path.join(TXT_DATA, 'raws', 'cities', '广州')
+    # process_city(city_path)
 
 
 if __name__ == '__main__':
