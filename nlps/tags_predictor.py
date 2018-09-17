@@ -8,24 +8,26 @@ Created by C. L. Wang on 2018/8/10
 import os
 import string
 
-from nlps.city_keywords import CHN_CITY_LIST, WORLD_CITY_LIST
+from nlps.tags_of_city import CHN_CITY_LIST, WORLD_CITY_LIST
+from nlps.tags_of_time import TIME_TAGS
 from nlps.nlp_dir import TXT_DATA
-from utils.log_utils import print_ex_u
+
 from utils.project_utils import *
 
 
-class RegionPredictor(object):
+class TagPredictor(object):
     KEY_WORD_FOLDER = os.path.join(TXT_DATA, 'res_kw', 'cities')
+    TIME_KW_FOLDER = os.path.join(TXT_DATA, 'res_kw', 'times')
     EX_WORDS_FILE = os.path.join(TXT_DATA, 'res_kw', 'cities_other', 'ex_words')
     KEY_WORDS_FILE = os.path.join(TXT_DATA, 'res_kw', 'cities_other', 'key_words')
     S_KEY_WORDS_FILE = os.path.join(TXT_DATA, 'res_kw', 'cities_other', 's_key_words')
 
     def __init__(self):
-        self.cw_dict, self.wc_dict = self.__load_cities_words()
+        self.cw_dict, self.wc_dict = self.__load_tags_words(TagPredictor.KEY_WORD_FOLDER, True)
+        self.tw_dict, self.wt_dict = self.__load_tags_words(TagPredictor.TIME_KW_FOLDER, False)
         self.ex_words = self.__load_ex_words()
         self.key_words = self.__load_key_words()  # 核心词
         self.s_key_words = self.__load_s_key_words()  # 核心词
-
 
     @staticmethod
     def __filter_pnc_and_num(s):
@@ -50,7 +52,7 @@ class RegionPredictor(object):
         加载需要排除的词汇，转换为unicode
         :return: 需要排除的词汇
         """
-        ex_words = read_file_utf8(RegionPredictor.EX_WORDS_FILE)
+        ex_words = read_file_utf8(TagPredictor.EX_WORDS_FILE)
         ex_words = [unicode_str(w) for w in ex_words]
         return ex_words
 
@@ -60,10 +62,9 @@ class RegionPredictor(object):
         关键词。转换为unicode
         :return: 需要排除的词汇
         """
-        key_words = read_file_utf8(RegionPredictor.KEY_WORDS_FILE)
+        key_words = read_file_utf8(TagPredictor.KEY_WORDS_FILE)
         key_words = [unicode_str(w) for w in key_words]
         return key_words
-
 
     @staticmethod
     def __load_s_key_words():
@@ -71,18 +72,19 @@ class RegionPredictor(object):
         关键词。转换为unicode
         :return: 需要排除的词汇
         """
-        key_words = read_file_utf8(RegionPredictor.S_KEY_WORDS_FILE)
+        key_words = read_file_utf8(TagPredictor.S_KEY_WORDS_FILE)
         key_words = [unicode_str(w) for w in key_words]
         return key_words
 
     @staticmethod
-    def __load_cities_words():
+    def __load_tags_words(file_name, is_ex=True):
         """
-        加载城市的词汇
+        加载标签的词汇
         :return: 当前的词汇
         """
-        path_list, name_list = traverse_dir_files(RegionPredictor.KEY_WORD_FOLDER)
-        cw_dict, wc_dict = dict(), dict()  # 城市->词; 词->城市
+        # path_list, name_list = traverse_dir_files(RegionPredictor.KEY_WORD_FOLDER)
+        path_list, name_list = traverse_dir_files(file_name)
+        cw_dict, wc_dict = dict(), dict()  # 标签->词; 词->标签
         for path, city in zip(path_list, name_list):
             city = unicode_str(city)
             words = read_file_utf8(path)  # 读取单词列表
@@ -94,12 +96,13 @@ class RegionPredictor(object):
                 if word not in wc_dict:
                     wc_dict[word] = []
                 wc_dict[word].append(city)
-        for wc_key in wc_dict:  # 检测重复词汇, 将词与城市对应
+        for wc_key in wc_dict:  # 检测重复词汇, 将词与标签对应
             words = wc_dict[wc_key]
             if len(words) != 1:
                 print(u'重复词汇: {}'.format(wc_key))
                 print(u'出现于 %s' % words)
-                raise Exception(u'重复词汇, 请删除!')
+                if is_ex:
+                    raise Exception(u'重复词汇, 请删除!')
             else:
                 wc_dict[wc_key] = words[0]
         # print_info('词汇数: %s, 城市数: %s' % (len(wc_dict.keys()), len(cw_dict.keys())))
@@ -161,7 +164,7 @@ class RegionPredictor(object):
         if sub_cities and sub_weights:
             for c, (sc, sw) in enumerate(zip(sub_cities, sub_weights)):
                 for uc, uw in zip(up_cities, up_weights):
-                    up_subs = RegionPredictor.get_sub_cities(uc)  # 获取子集
+                    up_subs = TagPredictor.get_sub_cities(uc)  # 获取子集
                     if sc in up_subs:
                         (s, w1) = sw
                         (u, w2) = uw
@@ -176,7 +179,7 @@ class RegionPredictor(object):
         up_city = up_cities[0]
         sub_city = sub_cities[0]
         # print(u'一级: {}, 二级: {}'.format(up_city, sub_city))
-        up_subs = RegionPredictor.get_sub_cities(up_city)  # 获取子集
+        up_subs = TagPredictor.get_sub_cities(up_city)  # 获取子集
         if def_city == sub_city:  # 如果为1级则返回
             return sub_city
         elif def_city == up_city:  # 如果为1级
@@ -207,7 +210,7 @@ class RegionPredictor(object):
             r1_final = r_sub
         elif r_up:
             for r1 in r_up:
-                sub_cities = RegionPredictor.get_sub_cities(r1)
+                sub_cities = TagPredictor.get_sub_cities(r1)
                 if sub_cities:
                     r1_final += sub_cities
                 else:
@@ -224,8 +227,8 @@ class RegionPredictor(object):
         """
         r_regions = real_dict.get('regions', None)
         p_regions = pred_dict.get('regions', None)
-        r1_final = RegionPredictor.__get_final_cities(r_regions)  # 真实城市
-        r2_final = RegionPredictor.__get_final_cities(p_regions)  # 预测城市
+        r1_final = TagPredictor.__get_final_cities(r_regions)  # 真实城市
+        r2_final = TagPredictor.__get_final_cities(p_regions)  # 预测城市
         if not r1_final and not r2_final:  # 全无是正确
             return True
         elif not r1_final and r2_final:  # 真实没有，预测有，是正确
@@ -282,10 +285,16 @@ class RegionPredictor(object):
         res_dict_key = self._predict(content_key, is_debug)
         if res_dict_key.get('regions', None):
             return res_dict_key
-        res_dict = self._predict(content, is_debug)
+        regions_dict = self._predict(content, is_debug)
+        times_dict = self._predict_time(content)
+
+        res_dict = {'regions': regions_dict.get('regions', []),
+                    'times': times_dict.get('times', [])}
+
+        # print(res_dict)
         return res_dict
 
-    def convert_cities(self, c_words, c_weights):
+    def convert_tags(self, c_words, c_weights, word_dict):
         """
         将关键词转换为城市
         :param c_words: 关键词
@@ -296,7 +305,8 @@ class RegionPredictor(object):
         if not c_words or not c_weights:  # 异常，直接返回空
             return c_cities, c_weights
         c_words, c_weights = sort_two_list(c_words, c_weights)  # 排序
-        c_cities = [unicode_str(self.wc_dict[w]) for w in c_words]  # 将词转换为城市
+        # c_cities = [unicode_str(self.wc_dict[w]) for w in c_words]  # 将词转换为城市
+        c_cities = [unicode_str(word_dict[w]) for w in c_words]  # 将词转换为城市
         remove_words = []  # 删除词汇
         # 获取需要删除的词汇
         for word1, weight1, city1 in zip(c_words, c_weights, c_cities):
@@ -357,10 +367,10 @@ class RegionPredictor(object):
                 c_words.append(k_word)
                 c_weights.append((safe_div(1, nw), iw))  # 1/的目的是改变单调性
         # print(u'{} {}'.format(list_2_utf8(c_words), list_2_utf8(c_weights)))
-        c_cities, c_weights = self.convert_cities(c_words, c_weights)  # 处理核心词汇
+        c_cities, c_weights = self.convert_tags(c_words, c_weights, self.wc_dict)  # 处理核心词汇
         # print(u'{} {}'.format(list_2_utf8(c_cities), list_2_utf8(c_weights)))
         if not c_weights or not c_cities:  # 没有关键词
-            return {"regions": ""}
+            return {"regions": []}
         r_city = self.analyze_cities(c_weights, c_cities)
         # print(u'最终城市: {}'.format(r_city))
         res_dict = {"regions": [r_city]}
@@ -369,9 +379,45 @@ class RegionPredictor(object):
             return res_dict
         return res_dict  # 返回城市
 
+    def _predict_time(self, content):
+        """
+        预测时间
+        :param content: 内容
+        :return: 标签字典
+        """
+        content = unicode_str(content)  # 转换unicode
+        content = self.__filter_pnc_and_num(content)  # 过滤标点和数字
+        content = self.__merge_spaces(content)  # 合并空格
+        word_list = self.wt_dict.keys()  # 全部词汇
+        c_words, c_weights = [], []  # 单词和权重
+
+        for k_word in word_list:
+            iw = content.find(k_word)  # 索引位置
+            nw = content.count(k_word)  # 出现次数
+            if iw != -1 and nw != 0:
+                c_words.append(k_word)
+                c_weights.append((safe_div(1, nw), iw))  # 1/的目的是改变单调性
+
+        if not c_words:
+            return {"times": []}
+
+        c_times, c_weights = self.convert_tags(c_words, c_weights, self.wt_dict)  # 处理核心词汇
+
+        final_tags = set()
+        for t_type in TIME_TAGS.keys():
+            for w_time in c_times:
+                if w_time in TIME_TAGS[t_type]:
+                    final_tags.add(w_time)  # 每个标签只添加一次
+                    break
+        final_tags = list(sorted(list(final_tags)))
+
+        res_dict = {"times": final_tags}
+
+        return res_dict
+
 
 def test_is_equal():
-    rp = RegionPredictor()
+    rp = TagPredictor()
     print(rp.is_tags_equal({"regions": [u'中国', u'海南']}, {"regions": [u'中国', u'三亚']}))  # True
     print(rp.is_tags_equal({"regions": []}, {"regions": [u'中国', u'厦门']}))  # True
     print(rp.is_tags_equal({"regions": [u'中国', u'海南']}, {"regions": []}))  # False
@@ -384,12 +430,23 @@ def test_is_equal():
     print(rp.is_tags_equal({"regions": [u'日本']}, {"regions": ['日本']}))  # True
 
 
-def main():
-    rp = RegionPredictor()
+def test_of_prediction():
+    rp = TagPredictor()
     res = rp.predict(
         u'浙江舟山的沈家门，海堤边停泊着千艘渔船，因此在这里也能发现到许多海鲜大排档和海鲜面馆。舟山的海鲜馆，有大有小，小至简陋的小门面，比如这家乐记海鲜面，在同类型的店里面算是经济实惠型的了。#美食# #舟山探店# #天使美食探店#特色：①这家店的招牌是三鲜面，和我们平时理解的三鲜不太一样，，比如我老家湖南邵阳的三鲜面搭配的是蛋饺、猪肚和香菇，而舟山这里的三鲜可是实打实的哟！主要有蛏子、花蛤、红虾等等。②来到舟山还必须吃吃他们的梭子蟹，我点的就是这家店的虾蟹面，里面有梭子蟹+红虾。③海鲜面的搭配很丰富，可以根据个人口味挑选各种配菜，大排、小排、熏鱼、黄花鱼、带鱼、牛肉、鱼丸……④还可以搭配一份炒年糕哟，这也是和别家面馆不太一样的。价位：乐记海鲜面在舟山的面馆里属于价格比较实惠型的，一般在25元左右一碗。也可以根据自己的喜好自选配料，丰俭看个人哇！'
     )
     print(json.dumps(res, ensure_ascii=False))
+
+
+def test_of_time():
+    rp = TagPredictor()
+    # tw_dict, wt_dict = rp.load_times_words()
+    # print(tw_dict)
+    # print(wt_dict)
+
+
+def main():
+    test_of_time()
 
 
 if __name__ == '__main__':

@@ -72,10 +72,44 @@ def read_csv(file_name):
     return lines
 
 
+def read_all_csv(file_name):
+    lines = []  # 输出的行
+
+    with open(file_name, encoding='gb2312') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        included_cols = [0, 1, 14, 18]  # ["ID", "缩略图", "标签", "描述"]
+        count = 0
+        for row in csv_reader:
+            count += 1
+            if count == 1:  # 第1行是标题
+                continue
+            c_row = convert_chinese(row)  # 转换为中文
+
+            if len(c_row) < 19:
+                continue
+
+            c_row = [filter_spaces(c_row[i]) for i in included_cols]  # 过滤信息
+
+            tags = c_row[2].replace('/', '').split(',')
+
+            r_dict = dict()
+            r_dict['id'] = c_row[0]
+            r_dict['images'] = c_row[1]
+            r_dict['tags'] = ','.join(tags)
+            r_dict['content'] = c_row[3]
+            lines.append(json.dumps(r_dict, ensure_ascii=False))
+
+        print('数据总数 {}'.format(count))
+
+    return lines
+
+
 def generate_mysql_data():
     csv_name = os.path.join(TXT_DATA, 'hot_content-2018-09-12-15384621.csv')
-    csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.txt')
-    lines = read_csv(csv_name)
+    # csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.txt')
+    csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.all.txt')
+    # lines = read_csv(csv_name)  # 地域标签
+    lines = read_all_csv(csv_name)  # 全部标签
     for line in lines:
         write_line(csv_output, unicode_str(line))
 

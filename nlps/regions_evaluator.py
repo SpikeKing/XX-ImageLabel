@@ -7,7 +7,7 @@ Created by C. L. Wang on 2018/8/13
 评估目前的数据集
 """
 from nlps.nlp_dir import TXT_DATA
-from nlps.region_predictor import RegionPredictor
+from nlps.tags_predictor import TagPredictor
 from utils.log_utils import print_info_u
 from utils.project_utils import *
 
@@ -17,7 +17,7 @@ def process_data():
     path_list, name_list = traverse_dir_files(raw_folder)
     print_info_u(u'标签数量: {}'.format(len(path_list)))
 
-    rp = RegionPredictor()
+    rp = TagPredictor()
 
     cities_dict = dict()
     data_count = 0  # 总的测试数据
@@ -87,7 +87,7 @@ def load_error_case():
 
 def process_city(city_path):
     city_name = unicode_str(city_path.split('/')[-1])
-    rp = RegionPredictor()
+    rp = TagPredictor()
 
     data_lines = read_file_utf8(city_path)
     a_count = len(data_lines)  # 总数
@@ -125,9 +125,9 @@ def process_city(city_path):
 
 
 def main():
-    process_data()
-    # city_path = os.path.join(TXT_DATA, 'raws', 'cities', '广州')
-    # process_city(city_path)
+    # process_data()
+    city_path = os.path.join(TXT_DATA, 'raws', 'cities', '上海')
+    process_city(city_path)
 
 
 if __name__ == '__main__':
