@@ -307,6 +307,7 @@ class TagPredictor(object):
         c_words, c_weights = sort_two_list(c_words, c_weights)  # 排序
         # c_cities = [unicode_str(self.wc_dict[w]) for w in c_words]  # 将词转换为城市
         c_cities = [unicode_str(word_dict[w]) for w in c_words]  # 将词转换为城市
+
         remove_words = []  # 删除词汇
         # 获取需要删除的词汇
         for word1, weight1, city1 in zip(c_words, c_weights, c_cities):
@@ -320,9 +321,15 @@ class TagPredictor(object):
         for word, weight, city in zip(c_words, c_weights, c_cities):
             if word in remove_words:
                 continue
-            t_words.append(word)
-            t_weights.append(weight)
-            t_cities.append(city)
+            if isinstance(city, list):  # 可能一个词对应两个标签
+                for c in city:
+                    t_words.append(word)
+                    t_weights.append(weight)
+                    t_cities.append(c)
+            else:
+                t_words.append(word)
+                t_weights.append(weight)
+                t_cities.append(city)
         city_dict = dict()  # 城市集
         for weight, city in zip(t_weights, t_cities):  # 词
             if city not in city_dict:
@@ -433,7 +440,7 @@ def test_is_equal():
 def test_of_prediction():
     rp = TagPredictor()
     res = rp.predict(
-        u'浙江舟山的沈家门，海堤边停泊着千艘渔船，因此在这里也能发现到许多海鲜大排档和海鲜面馆。舟山的海鲜馆，有大有小，小至简陋的小门面，比如这家乐记海鲜面，在同类型的店里面算是经济实惠型的了。#美食# #舟山探店# #天使美食探店#特色：①这家店的招牌是三鲜面，和我们平时理解的三鲜不太一样，，比如我老家湖南邵阳的三鲜面搭配的是蛋饺、猪肚和香菇，而舟山这里的三鲜可是实打实的哟！主要有蛏子、花蛤、红虾等等。②来到舟山还必须吃吃他们的梭子蟹，我点的就是这家店的虾蟹面，里面有梭子蟹+红虾。③海鲜面的搭配很丰富，可以根据个人口味挑选各种配菜，大排、小排、熏鱼、黄花鱼、带鱼、牛肉、鱼丸……④还可以搭配一份炒年糕哟，这也是和别家面馆不太一样的。价位：乐记海鲜面在舟山的面馆里属于价格比较实惠型的，一般在25元左右一碗。也可以根据自己的喜好自选配料，丰俭看个人哇！'
+        u'遇见厦门：文艺大表姐的旅行日记假如那远方有座岛，岛上有你还有盛开的花我可以穿越时间与海，崇拜着你的存在飞机从虹桥起飞，又在高崎机场降落。低气压包裹着我，海风吹来咸湿的空气也不停地提醒我，没错，我到厦门啦～这次厦门之旅决定之突然连我和莉莉都吓到。某天吃过午饭坐在办公室电脑前稍微有点困倦的时候，看到人事发来的清明休假安排。刚巧和莉莉在微信上在聊天就顺口说：我去厦门找你吧。她在那边回复；好啊，好啊。于是我查了航班，订了酒店，连攻略都不用做的厦门之行就在电光火石之间决定了下来。现代科学发达到让任何一种经历变得不真实。出租车从机场开往酒店的路上，我还没有实感。并没有觉得自己从上海飞行了近千公里来到一座陌生的城市。而这座我从未踏足过的城市，它是什么颜色的，是什么味道的，是什么性格的，这些问题在我的脑海里不断的盘旋。然而此行最让我期待的，不是遇见山河湖海，也不是探险大街小巷，而是去见心心念念的人。而当我离开时，再次经过沿海大桥，道路热浪翻滚，我在车里几乎昏昏欲睡。我多希望，一觉醒来，能回到那年夏天，我们穿着凉拖在文汇路上散步的夜晚。我多庆幸，就算你我隔山海，也能偶尔思念一下，偶尔问候彼此。厦门依偎着海，我依偎着时间。厦门等待着潮汐涌来，就像我在这里等你，向我飞奔而来。'
     )
     print(json.dumps(res, ensure_ascii=False))
 
@@ -446,7 +453,7 @@ def test_of_time():
 
 
 def main():
-    test_of_time()
+    test_of_prediction()
 
 
 if __name__ == '__main__':
