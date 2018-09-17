@@ -244,6 +244,8 @@ class TagPredictor(object):
         :return: 关键词
         """
         content = unicode_str(content)
+        content = self.__remove_ex_words(content)  # 删除歧义词汇
+
         words = self.key_words
         s_words = self.s_key_words
 
@@ -268,8 +270,8 @@ class TagPredictor(object):
             if key_idxes:  # 关键词出现多次
                 # print('info: {}'.format(word))
                 for key_idx in key_idxes:
-                    start_idx = max(0, key_idx - 5)
-                    end_idx = min(len(content), key_idx + 5)
+                    start_idx = max(0, key_idx - 10)
+                    end_idx = min(len(content), key_idx + 10)
                     content_key += content[start_idx:end_idx] + u" "
 
         return content_key
@@ -464,7 +466,7 @@ def test_is_equal():
 
 def test_of_prediction():
     rp = TagPredictor()
-    content = u'遇见厦门：文艺大表姐的旅行日记假如那远方有座岛，岛上有你还有盛开的花我可以穿越时间与海，崇拜着你的存在飞机从虹桥起飞，又在高崎机场降落。低气压包裹着我，海风吹来咸湿的空气也不停地提醒我，没错，我到厦门啦～这次厦门之旅决定之突然连我和莉莉都吓到。某天吃过午饭坐在办公室电脑前稍微有点困倦的时候，看到人事发来的清明休假安排。刚巧和莉莉在微信上在聊天就顺口说：我去厦门找你吧。她在那边回复；好啊，好啊。于是我查了航班，订了酒店，连攻略都不用做的厦门之行就在电光火石之间决定了下来。现代科学发达到让任何一种经历变得不真实。出租车从机场开往酒店的路上，我还没有实感。并没有觉得自己从上海飞行了近千公里来到一座陌生的城市。而这座我从未踏足过的城市，它是什么颜色的，是什么味道的，是什么性格的，这些问题在我的脑海里不断的盘旋。然而此行最让我期待的，不是遇见山河湖海，也不是探险大街小巷，而是去见心心念念的人。而当我离开时，再次经过沿海大桥，道路热浪翻滚，我在车里几乎昏昏欲睡。我多希望，一觉醒来，能回到那年夏天，我们穿着凉拖在文汇路上散步的夜晚。我多庆幸，就算你我隔山海，也能偶尔思念一下，偶尔问候彼此。厦门依偎着海，我依偎着时间。厦门等待着潮汐涌来，就像我在这里等你，向我飞奔而来。'
+    content = u'#泰国探店#喜提曼谷拉差达火车夜市，真的巨大营业时间：每周一到周日，17:00-21:00前面几排都是美食，后面有衣服饰品区，酒吧取超级热闹，一路跟当地人一样吃吃吃拍拍拍火山排骨酸辣好吃，巨大又便宜，一定要认准市场右外围那一家，图九的我那个网红西瓜冰西施做的冰一般 人美生意超好各种海鲜 大头虾 鱿鱼 螃蟹 炸虫子 彩虹吐司 榴莲自助 …吃饱遛弯去买了四对好看的耳环100泰铢[偷笑]MRT地铁Thailand Cultural Center泰国文化中心站，顺着旁边的Esplanad随着人流一直走进去就是了超级大；Grab打车软件中输入Ryll Shop Train Market Ratchada，这个定位就是拉差达火车夜市的英文，一口价，可以选择现金、信用卡，超级方便，定位也很准。想拍夜市的全景，最佳拍摄地，停车场上层，当然越高景色越全。火山排骨在主区右侧的副区，一定认准我最后一张的牌子那家才是正版，分M、L、XL、XXL号，价格分别为120、220、290、599泰铢，便宜到爆炸，酸辣鸡爪空心菜炒饭也好吃，排队超火爆，但真好吃。@MT情报局 （边写边流口水，好想吃晚饭）'
     res = rp.predict(content)
     print(json.dumps(res, ensure_ascii=False))
     print(rp.get_time_detail(content))

@@ -98,8 +98,6 @@ def process_city(city_path):
 
     for data_line in data_lines:
         did, _ = data_line.split(',', 1)
-        if did == '6440417979699823617':
-            print(did)
         if error_ids:
             if did in error_ids:
                 r_count += 1
@@ -125,9 +123,9 @@ def process_city(city_path):
 
 
 def main():
-    # process_data()
-    city_path = os.path.join(TXT_DATA, 'raws', 'cities', '上海')
-    process_city(city_path)
+    process_data()
+    # city_path = os.path.join(TXT_DATA, 'raws', 'cities', '浙江')
+    # process_city(city_path)
 
 
 if __name__ == '__main__':
