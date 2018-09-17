@@ -18,11 +18,14 @@ class RegionPredictor(object):
     KEY_WORD_FOLDER = os.path.join(TXT_DATA, 'res_kw', 'cities')
     EX_WORDS_FILE = os.path.join(TXT_DATA, 'res_kw', 'cities_other', 'ex_words')
     KEY_WORDS_FILE = os.path.join(TXT_DATA, 'res_kw', 'cities_other', 'key_words')
+    S_KEY_WORDS_FILE = os.path.join(TXT_DATA, 'res_kw', 'cities_other', 's_key_words')
 
     def __init__(self):
         self.cw_dict, self.wc_dict = self.__load_cities_words()
         self.ex_words = self.__load_ex_words()
         self.key_words = self.__load_key_words()  # 核心词
+        self.s_key_words = self.__load_s_key_words()  # 核心词
+
 
     @staticmethod
     def __filter_pnc_and_num(s):
@@ -58,6 +61,17 @@ class RegionPredictor(object):
         :return: 需要排除的词汇
         """
         key_words = read_file_utf8(RegionPredictor.KEY_WORDS_FILE)
+        key_words = [unicode_str(w) for w in key_words]
+        return key_words
+
+
+    @staticmethod
+    def __load_s_key_words():
+        """
+        关键词。转换为unicode
+        :return: 需要排除的词汇
+        """
+        key_words = read_file_utf8(RegionPredictor.S_KEY_WORDS_FILE)
         key_words = [unicode_str(w) for w in key_words]
         return key_words
 
@@ -228,6 +242,8 @@ class RegionPredictor(object):
         """
         content = unicode_str(content)
         words = self.key_words
+        s_words = self.s_key_words
+
         content_key = u""
         b_len = 5
         for word in words:
@@ -241,6 +257,18 @@ class RegionPredictor(object):
                     idx_len = min(len(content) - key_idx, 50)
                     start_idx = max(0, key_idx - b_len)
                     content_key += content[start_idx:start_idx + idx_len + b_len] + u" "
+
+        for word in s_words:
+            key_idxes = []
+            for match in re.finditer(str(word), content):
+                key_idxes.append(match.start())
+            if key_idxes:  # 关键词出现多次
+                # print('info: {}'.format(word))
+                for key_idx in key_idxes:
+                    start_idx = max(0, key_idx - 5)
+                    end_idx = min(len(content), key_idx + 5)
+                    content_key += content[start_idx:end_idx] + u" "
+
         return content_key
 
     def predict(self, content, is_debug=False):
