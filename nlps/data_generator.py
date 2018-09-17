@@ -8,7 +8,7 @@ Created by C. L. Wang on 2018/8/13
 """
 import csv
 
-from nlps.city_keywords import CHN_CITY_LIST, WORLD_CITY_LIST
+from nlps.tags_of_city import CHN_CITY_LIST, WORLD_CITY_LIST
 from nlps.nlp_dir import TXT_DATA
 from utils.project_utils import *
 
@@ -80,12 +80,12 @@ def read_all_csv(file_name):
         included_cols = [0, 1, 14, 18]  # ["ID", "缩略图", "标签", "描述"]
         count = 0
         for row in csv_reader:
-            count += 1
-            if count == 1:  # 第1行是标题
-                continue
             c_row = convert_chinese(row)  # 转换为中文
-
             if len(c_row) < 19:
+                continue
+
+            count += 1
+            if count == 0:  # 第1行是标题
                 continue
 
             c_row = [filter_spaces(c_row[i]) for i in included_cols]  # 过滤信息
@@ -108,6 +108,7 @@ def generate_mysql_data():
     csv_name = os.path.join(TXT_DATA, 'hot_content-2018-09-12-15384621.csv')
     # csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.txt')
     csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.all.txt')
+    create_file(csv_output)
     # lines = read_csv(csv_name)  # 地域标签
     lines = read_all_csv(csv_name)  # 全部标签
     for line in lines:

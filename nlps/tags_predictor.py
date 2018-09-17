@@ -422,6 +422,31 @@ class TagPredictor(object):
 
         return res_dict
 
+    def get_time_detail(self, content):
+        content = unicode_str(content)  # 转换unicode
+        content = self.__filter_pnc_and_num(content)  # 过滤标点和数字
+        content = self.__merge_spaces(content)  # 合并空格
+        word_list = self.wt_dict.keys()  # 全部词汇
+        c_words, c_weights = [], []  # 单词和权重
+
+        for k_word in word_list:
+            iw = content.find(k_word)  # 索引位置
+            nw = content.count(k_word)  # 出现次数
+            if iw != -1 and nw != 0:
+                c_words.append(k_word)
+                c_weights.append((safe_div(1, nw), iw))  # 1/的目的是改变单调性
+
+        if not c_words:
+            return {"times": []}
+
+        c_times, c_weights = self.convert_tags(c_words, c_weights, self.wt_dict)  # 处理核心词汇
+        res_str = ""
+        for c_word, c_weight in zip(c_words, c_weights):
+            res_str += c_word + "-" + str(int(safe_div(1, c_weight[0]))) + ","
+        if res_str:
+            res_str = res_str[:len(res_str) - 1]  # 去掉最后的","
+        return res_str
+
 
 def test_is_equal():
     rp = TagPredictor()
@@ -439,10 +464,10 @@ def test_is_equal():
 
 def test_of_prediction():
     rp = TagPredictor()
-    res = rp.predict(
-        u'遇见厦门：文艺大表姐的旅行日记假如那远方有座岛，岛上有你还有盛开的花我可以穿越时间与海，崇拜着你的存在飞机从虹桥起飞，又在高崎机场降落。低气压包裹着我，海风吹来咸湿的空气也不停地提醒我，没错，我到厦门啦～这次厦门之旅决定之突然连我和莉莉都吓到。某天吃过午饭坐在办公室电脑前稍微有点困倦的时候，看到人事发来的清明休假安排。刚巧和莉莉在微信上在聊天就顺口说：我去厦门找你吧。她在那边回复；好啊，好啊。于是我查了航班，订了酒店，连攻略都不用做的厦门之行就在电光火石之间决定了下来。现代科学发达到让任何一种经历变得不真实。出租车从机场开往酒店的路上，我还没有实感。并没有觉得自己从上海飞行了近千公里来到一座陌生的城市。而这座我从未踏足过的城市，它是什么颜色的，是什么味道的，是什么性格的，这些问题在我的脑海里不断的盘旋。然而此行最让我期待的，不是遇见山河湖海，也不是探险大街小巷，而是去见心心念念的人。而当我离开时，再次经过沿海大桥，道路热浪翻滚，我在车里几乎昏昏欲睡。我多希望，一觉醒来，能回到那年夏天，我们穿着凉拖在文汇路上散步的夜晚。我多庆幸，就算你我隔山海，也能偶尔思念一下，偶尔问候彼此。厦门依偎着海，我依偎着时间。厦门等待着潮汐涌来，就像我在这里等你，向我飞奔而来。'
-    )
+    content = u'遇见厦门：文艺大表姐的旅行日记假如那远方有座岛，岛上有你还有盛开的花我可以穿越时间与海，崇拜着你的存在飞机从虹桥起飞，又在高崎机场降落。低气压包裹着我，海风吹来咸湿的空气也不停地提醒我，没错，我到厦门啦～这次厦门之旅决定之突然连我和莉莉都吓到。某天吃过午饭坐在办公室电脑前稍微有点困倦的时候，看到人事发来的清明休假安排。刚巧和莉莉在微信上在聊天就顺口说：我去厦门找你吧。她在那边回复；好啊，好啊。于是我查了航班，订了酒店，连攻略都不用做的厦门之行就在电光火石之间决定了下来。现代科学发达到让任何一种经历变得不真实。出租车从机场开往酒店的路上，我还没有实感。并没有觉得自己从上海飞行了近千公里来到一座陌生的城市。而这座我从未踏足过的城市，它是什么颜色的，是什么味道的，是什么性格的，这些问题在我的脑海里不断的盘旋。然而此行最让我期待的，不是遇见山河湖海，也不是探险大街小巷，而是去见心心念念的人。而当我离开时，再次经过沿海大桥，道路热浪翻滚，我在车里几乎昏昏欲睡。我多希望，一觉醒来，能回到那年夏天，我们穿着凉拖在文汇路上散步的夜晚。我多庆幸，就算你我隔山海，也能偶尔思念一下，偶尔问候彼此。厦门依偎着海，我依偎着时间。厦门等待着潮汐涌来，就像我在这里等你，向我飞奔而来。'
+    res = rp.predict(content)
     print(json.dumps(res, ensure_ascii=False))
+    print(rp.get_time_detail(content))
 
 
 def test_of_time():
