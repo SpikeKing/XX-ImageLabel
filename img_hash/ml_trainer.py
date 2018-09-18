@@ -168,12 +168,34 @@ class MultiLabelTrainer(object):
 
         return ar, ap, af1
 
+    def get_batch_rpf(self, outputs, labels):
+        """
+        获取批次的rpf
+        :param outputs: 输出
+        :param labels: 真值
+        :return: r, p, f1
+        """
+        br, bp, bf1 = 0, 0, 0
+        for output, label in zip(outputs, labels):
+            r, p, f1 = self.metric_of_rpf(output, label)
+            br += r
+            bp += p
+            bf1 += f1
+
+        sp_batch = len(outputs)
+
+        br /= sp_batch
+        bp /= sp_batch
+        bf1 /= sp_batch
+
+        return br, bp, bf1
+
     def val_net(self, net, val_data):
         e_r, e_p, e_f1 = 0, 0, 0
         self.print_info('验证批次数: {}'.format(len(val_data) / self.batch_size))
 
         # final_i = 0
-        n_batch = safe_div(len(val_data), self.batch_size)
+        n_batch = int(safe_div(len(val_data), self.batch_size))
         self.print_info('batch num: {}'.format(n_batch))
 
         for i, batch in enumerate(val_data):
@@ -184,22 +206,15 @@ class MultiLabelTrainer(object):
 
             outputs = [net(X) for X in data]
 
-            br, bp, bf1 = 0, 0, 0
-            for output, label in zip(outputs, labels):
-                r, p, f1 = self.metric_of_rpf(output, label)
-                br += r
-                bp += p
-                bf1 += f1
+            br, bp, bf1 = self.get_batch_rpf(outputs, labels)
 
-            e_r += safe_div(br, len(outputs))
-            e_p += safe_div(bp, len(outputs))
-            e_f1 += safe_div(bf1, len(outputs))
+            e_r += br
+            e_p += bp
+            e_f1 += bf1
 
-            sp_batch = len(outputs)
             self.print_info('validation: batch: {}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
-                            .format(i, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
+                            .format(i, br, bp, bf1))
 
-        # n_batch = final_i + 1
         e_r /= n_batch
         e_p /= n_batch
         e_f1 /= n_batch
@@ -222,8 +237,8 @@ class MultiLabelTrainer(object):
         lr_steps = [10, 20, 30, np.inf]  # 逐渐降低学习率
         lr_factor = 0.75
         lr_counter = 0
-        n_batch = safe_div(len(train_data), self.batch_size)
 
+        n_batch = int(safe_div(len(train_data), self.batch_size))
         self.print_info('batch num: {}'.format(n_batch))
 
         for epoch in range(self.epochs):
@@ -252,23 +267,14 @@ class MultiLabelTrainer(object):
                 batch_loss = sum([l.mean().asscalar() for l in bc_loss]) / len(bc_loss)  # batch的loss
                 e_loss += batch_loss
 
-                br, bp, bf1 = 0, 0, 0
-                for output, label in zip(outputs, labels):
-                    r, p, f1 = self.metric_of_rpf(output, label)
-                    br += r
-                    bp += p
-                    bf1 += f1
+                br, bp, bf1 = self.get_batch_rpf(outputs, labels)
 
-                e_r += safe_div(br, len(outputs))
-                e_p += safe_div(bp, len(outputs))
-                e_f1 += safe_div(bf1, len(outputs))
+                e_r += br
+                e_p += bp
+                e_f1 += bf1
 
-                sp_batch = len(outputs)
                 self.print_info('batch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
-                                .format(i, batch_loss, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
-
-                # if i == 5:
-                #     break
+                                .format(i, batch_loss, br, bp, bf1))
 
             e_loss /= n_batch
             e_r /= n_batch
