@@ -215,6 +215,8 @@ class MultiLabelTrainer(object):
             self.print_info('validation: batch: {}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                             .format(i, br, bp, bf1))
 
+            n_batch = i + 1
+
         e_r /= n_batch
         e_p /= n_batch
         e_f1 /= n_batch
@@ -277,6 +279,10 @@ class MultiLabelTrainer(object):
 
                 self.print_info('batch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                                 .format(i, batch_loss, br, bp, bf1))
+
+                n_batch = i + 1
+                if i == 10:
+                    break
 
             e_loss /= n_batch
             e_r /= n_batch
