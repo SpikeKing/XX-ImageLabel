@@ -11,13 +11,12 @@ import mxnet as mx
 import numpy as np
 from mxnet.gluon.utils import split_and_load
 
-from utils.mx_utils import save_mx_net
-
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
     sys.path.append(p)
 
 from configparser import ConfigParser
+from utils.project_utils import *
 
 from mxnet import autograd
 from mxnet.gluon import Trainer
@@ -277,7 +276,9 @@ class MultiLabelTrainer(object):
             e_r, e_p, e_f1 = self.val_net(base_net, val_data)
 
             # 存储参数
-            epoch_params = os.path.join(DATA_DIR, 'checkpoints', 'epoch-{}-{:.2f}.params'.format(epoch, e_f1))
+            cp_dir = os.path.join(DATA_DIR, 'checkpoints')
+            mkdir_if_not_exist(cp_dir)
+            epoch_params = os.path.join(cp_dir, 'epoch-{}-{:.2f}.params'.format(epoch, e_f1))
             base_net.save_params(epoch_params)
 
 
