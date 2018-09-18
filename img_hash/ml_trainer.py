@@ -240,7 +240,7 @@ class MultiLabelTrainer(object):
 
         n_batch = int(len_td / self.batch_size)
 
-        self.print_info('训练 - 样本数:{}, 批次样本: {}'
+        self.print_info('训练 - 样本数:{}, 批次样本: {}, 批次数: {}'
                         .format(len_td, self.batch_size, n_batch))
 
         for epoch in range(self.epochs):
