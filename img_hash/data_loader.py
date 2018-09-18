@@ -63,7 +63,7 @@ class TripletDataset(dataset.Dataset):
         图片个数
         """
         num = len(self.tp_list[0])
-        self._print_info('样本数: {}'.format(num))
+        # self._print_info('样本数: {}'.format(num))
         return num
 
     def get_class_names(self):
@@ -143,7 +143,7 @@ class TripletDataset(dataset.Dataset):
         """
         列出图片数据
         """
-        self._print_info('类别数: {}'.format(len(self.class_names)))
+        # self._print_info('类别数: {}'.format(len(self.class_names)))
 
         pathes, names = traverse_dir_files(self.data_folder)
         name_path_dict = dict(zip(names, pathes))
@@ -169,7 +169,7 @@ class TripletDataset(dataset.Dataset):
             if name in name_path_dict.keys():
                 self.items.append((name_path_dict[name], oh_label))
 
-        self._print_info('样本数: {}'.format(len(self.items)))
+        # self._print_info('样本数: {}'.format(len(self.items)))
 
     def _load_pairs(self):
         """

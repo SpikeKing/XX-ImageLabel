@@ -120,7 +120,7 @@ class MultiLabelTrainer(object):
         td = MultilabelDataset(data_folder=self.train_folder, data_file=self.train_file)
         train_data = DataLoader(td.transform_first(transform_train), batch_size=batch_size, shuffle=True)
 
-        return train_data
+        return train_data, len(td)
 
     def get_val_data(self, batch_size):
         """
@@ -136,7 +136,7 @@ class MultiLabelTrainer(object):
         td = MultilabelDataset(data_folder=self.val_folder, data_file=self.val_file)
         val_data = DataLoader(td.transform_first(transform_val), batch_size=batch_size, shuffle=True)
 
-        return val_data
+        return val_data, len(td)
 
     @staticmethod
     def print_info(s):
@@ -190,13 +190,13 @@ class MultiLabelTrainer(object):
 
         return br, bp, bf1
 
-    def val_net(self, net, val_data):
-        e_r, e_p, e_f1 = 0, 0, 0
-        self.print_info('验证批次数: {}'.format(len(val_data) / self.batch_size))
+    def val_net(self, net, val_data, len_vd):
 
-        # final_i = 0
-        n_batch = int(safe_div(len(val_data), self.batch_size))
-        self.print_info('batch num: {}'.format(n_batch))
+        n_batch = int(len_vd / self.batch_size)
+        self.print_info('训练 - 样本数:{}, 批次样本: {}, 批次数: {}'
+                        .format(len_vd, self.batch_size, n_batch))
+
+        e_r, e_p, e_f1 = 0, 0, 0
 
         for i, batch in enumerate(val_data):
             data, labels = batch[0], batch[1].astype('float32')
@@ -228,8 +228,8 @@ class MultiLabelTrainer(object):
         训练模型
         """
         base_net = self.get_base_net()  # 基础网络
-        train_data = self.get_train_data(self.batch_size)  # 训练数据，按批次获取
-        val_data = self.get_val_data(self.batch_size)  # 训练数据，按批次获取
+        train_data, len_td = self.get_train_data(self.batch_size)  # 训练数据，按批次获取
+        val_data, len_vd = self.get_val_data(self.batch_size)  # 训练数据，按批次获取
 
         trainer = Trainer(base_net.collect_params(), 'rmsprop', {'learning_rate': 1e-4})
         loss_func = SigmoidBinaryCrossEntropyLoss()
@@ -238,8 +238,10 @@ class MultiLabelTrainer(object):
         lr_factor = 0.75
         lr_counter = 0
 
-        n_batch = int(safe_div(len(train_data), self.batch_size))
-        self.print_info('batch num: {}'.format(n_batch))
+        n_batch = int(len_td / self.batch_size)
+
+        self.print_info('训练 - 样本数:{}, 批次样本: {}'
+                        .format(len_td, self.batch_size, n_batch))
 
         for epoch in range(self.epochs):
 
@@ -283,7 +285,7 @@ class MultiLabelTrainer(object):
 
             self.print_info('epoch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                             .format(epoch, e_loss, e_r, e_p, e_f1))
-            e_r, e_p, e_f1 = self.val_net(base_net, val_data)
+            e_r, e_p, e_f1 = self.val_net(base_net, val_data, len_vd)
 
             # 存储参数
             cp_dir = os.path.join(DATA_DIR, 'checkpoints')
