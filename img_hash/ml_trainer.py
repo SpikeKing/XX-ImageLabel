@@ -172,7 +172,10 @@ class MultiLabelTrainer(object):
         e_r, e_p, e_f1 = 0, 0, 0
         self.print_info('验证批次数: {}'.format(len(val_data) / self.batch_size))
 
-        final_i = 0
+        # final_i = 0
+        n_batch = safe_div(len(val_data), self.batch_size)
+        self.print_info('batch num: {}'.format(n_batch))
+
         for i, batch in enumerate(val_data):
             data, labels = batch[0], batch[1].astype('float32')
 
@@ -188,19 +191,15 @@ class MultiLabelTrainer(object):
                 bp += p
                 bf1 += f1
 
-            e_r += br
-            e_p += bp
-            e_f1 += bf1
-
-            if i == 20:
-                final_i = i
-                break
+            e_r += safe_div(br, len(outputs))
+            e_p += safe_div(bp, len(outputs))
+            e_f1 += safe_div(bf1, len(outputs))
 
             sp_batch = len(outputs)
             self.print_info('validation: batch: {}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                             .format(i, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
 
-        n_batch = final_i + 1
+        # n_batch = final_i + 1
         e_r /= n_batch
         e_p /= n_batch
         e_f1 /= n_batch
@@ -223,6 +222,9 @@ class MultiLabelTrainer(object):
         lr_steps = [10, 20, 30, np.inf]  # 逐渐降低学习率
         lr_factor = 0.75
         lr_counter = 0
+        n_batch = safe_div(len(train_data), self.batch_size)
+
+        self.print_info('batch num: {}'.format(n_batch))
 
         for epoch in range(self.epochs):
 
@@ -257,15 +259,17 @@ class MultiLabelTrainer(object):
                     bp += p
                     bf1 += f1
 
-                e_r += br
-                e_p += bp
-                e_f1 += bf1
+                e_r += safe_div(br, len(outputs))
+                e_p += safe_div(bp, len(outputs))
+                e_f1 += safe_div(bf1, len(outputs))
 
                 sp_batch = len(outputs)
                 self.print_info('batch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                                 .format(i, batch_loss, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
 
-            n_batch = safe_div(len(train_data), self.batch_size)
+                # if i == 5:
+                #     break
+
             e_loss /= n_batch
             e_r /= n_batch
             e_p /= n_batch
