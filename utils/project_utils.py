@@ -478,7 +478,7 @@ def write_list_to_file(file_name, data_list):
         write_line(file_name, data)
 
 
-def write_line(file_name, line):
+def write_line_utf8(file_name, line):
     """
     将行数据写入文件
     :param file_name: 文件名
@@ -488,6 +488,22 @@ def write_line(file_name, line):
     if file_name == "":
         return
     with io.open(file_name, "a+", encoding='utf8') as fs:
+        if type(line) is (tuple or list):
+            fs.write("%s\n" % ", ".join(line))
+        else:
+            fs.write("%s\n" % line)
+
+
+def write_line(file_name, line):
+    """
+    将行数据写入文件
+    :param file_name: 文件名
+    :param line: 行数据
+    :return: None
+    """
+    if file_name == "":
+        return
+    with io.open(file_name, "a+") as fs:
         if type(line) is (tuple or list):
             fs.write("%s\n" % ", ".join(line))
         else:

@@ -4,11 +4,14 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/9/11
 """
+import json
 import os
 import sys
 import mxnet as mx
 import numpy as np
 from mxnet.gluon.utils import split_and_load
+
+from utils.mx_utils import save_mx_net
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
@@ -72,7 +75,6 @@ class MultiLabelTrainer(object):
 
     @staticmethod
     def get_context(is_gpu):
-        # ctx = mx.gpu(0) if is_gpu > 0 else mx.cpu()  # 选择CPU或GPU
         if is_gpu:
             num_gpus = 3
         else:
@@ -174,6 +176,7 @@ class MultiLabelTrainer(object):
         final_i = 0
         for i, batch in enumerate(val_data):
             data, labels = batch[0], batch[1].astype('float32')
+
             data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)  # 多GPU
             labels = split_and_load(labels, ctx_list=self.ctx, batch_axis=0, even_split=False)
 
@@ -197,10 +200,6 @@ class MultiLabelTrainer(object):
             sp_batch = len(outputs)
             self.print_info('validation: batch: {}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                             .format(i, br / sp_batch, bp / sp_batch, bf1 / sp_batch))
-            # r, p, f1 = self.metric_of_rpf(outputs, labels)
-            # e_r += r
-            # e_p += p
-            # e_f1 += f1
 
         n_batch = final_i + 1
         e_r /= n_batch
@@ -209,6 +208,7 @@ class MultiLabelTrainer(object):
 
         self.print_info('validation: recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                         .format(e_r, e_p, e_f1))
+        return e_r, e_p, e_f1
 
     def train_model(self):
         """
@@ -236,26 +236,18 @@ class MultiLabelTrainer(object):
             for i, batch in enumerate(train_data):
                 data, labels = batch[0], batch[1].astype('float32')
 
-                # data = data.as_in_context(context=self.ctx)
-                # labels = labels.as_in_context(context=self.ctx)
                 data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)
                 labels = split_and_load(labels, ctx_list=self.ctx, batch_axis=0, even_split=False)
 
-                # self.print_info('data: {}, labels: {}'.format(data.shape, labels.shape))
-
                 with autograd.record():  # 梯度求导
-                    # outputs = base_net(data)
-                    # bc_loss = loss_func(outputs, labels)
                     outputs = [base_net(X) for X in data]
                     bc_loss = [loss_func(yhat, y) for yhat, y in zip(outputs, labels)]
 
-                # autograd.backward(bc_loss)
                 for l in bc_loss:
                     l.backward()
 
                 trainer.step(self.batch_size)
 
-                # self.print_info('Loss: {}'.format(bc_loss.shape))  # (8, 27)
                 batch_loss = sum([l.mean().asscalar() for l in bc_loss]) / len(bc_loss)  # batch的loss
                 e_loss += batch_loss
 
@@ -282,7 +274,11 @@ class MultiLabelTrainer(object):
 
             self.print_info('epoch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                             .format(epoch, e_loss, e_r, e_p, e_f1))
-            self.val_net(base_net, val_data)
+            e_r, e_p, e_f1 = self.val_net(base_net, val_data)
+
+            # 存储参数
+            epoch_params = os.path.join(DATA_DIR, 'checkpoints', 'epoch-{}-{:.2f}.params'.format(epoch, e_f1))
+            base_net.save_params(epoch_params)
 
 
 if __name__ == '__main__':
