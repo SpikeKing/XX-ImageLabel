@@ -296,7 +296,7 @@ class MultiLabelTrainer(object):
             # 存储参数
             cp_dir = os.path.join(DATA_DIR, 'checkpoints')
             mkdir_if_not_exist(cp_dir)
-            epoch_params = os.path.join(cp_dir, 'epoch-{}-{:.2f}.params'.format(epoch, e_f1))
+            epoch_params = os.path.join(cp_dir, 'epoch-{}-{:.2f}-{}.params'.format(epoch, e_f1, get_current_time_str()))
             base_net.save_params(epoch_params)
 
 
