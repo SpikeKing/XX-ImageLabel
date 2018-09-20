@@ -125,3 +125,6 @@ img_hash/data/
 sh_venv.sh
 img_hash/configs.conf
 *.zip
+
+img_hash/xu_pkg/models
+img_hash/xu_pkg/have_zi

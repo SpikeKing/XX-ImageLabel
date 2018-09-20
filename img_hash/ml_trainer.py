@@ -4,12 +4,11 @@
 Copyright (c) 2018. All rights reserved.
 Created by C. L. Wang on 2018/9/11
 """
-import json
 import os
 import sys
+
 import mxnet as mx
 import numpy as np
-from mxnet.gluon.utils import split_and_load
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
@@ -19,6 +18,7 @@ from configparser import ConfigParser
 from utils.project_utils import *
 
 from mxnet import autograd
+from mxnet.gluon.utils import split_and_load
 from mxnet.gluon import Trainer
 from mxnet.gluon.data import DataLoader
 from mxnet.gluon.data.vision import transforms
@@ -225,6 +225,20 @@ class MultiLabelTrainer(object):
                         .format(e_r, e_p, e_f1))
         return e_r, e_p, e_f1
 
+    @staticmethod
+    def save_net_and_params(net, epoch, value):
+        """
+        存储网络和参数
+        :param net: 网络
+        :param epoch: epoch
+        :param value: 值
+        :return: None
+        """
+        cp_dir = os.path.join(DATA_DIR, 'checkpoints')
+        mkdir_if_not_exist(cp_dir)
+        epoch_params = os.path.join(cp_dir, 'epoch-{}-{:.2f}-{}.params'.format(epoch, value, get_current_time_str()))
+        net.export(epoch_params, epoch=epoch)
+
     def train_model(self):
         """
         训练模型
@@ -254,6 +268,7 @@ class MultiLabelTrainer(object):
             e_loss, e_r, e_p, e_f1 = 0, 0, 0, 0  # epoch
 
             for i, batch in enumerate(train_data):
+                
                 data, labels = batch[0], batch[1].astype('float32')
 
                 data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)
@@ -280,9 +295,7 @@ class MultiLabelTrainer(object):
                 self.print_info('batch: {}, loss: {:.5f}, recall: {:.2f}, precision: {:.2f}, f1: {:.2f}'
                                 .format(i, batch_loss, br, bp, bf1))
 
-                n_batch = i + 1
-                # if i == 10:
-                #     break
+                n_batch = i + 1  # 批次数
 
             e_loss /= n_batch
             e_r /= n_batch
@@ -293,11 +306,7 @@ class MultiLabelTrainer(object):
                             .format(epoch, e_loss, e_r, e_p, e_f1))
             e_r, e_p, e_f1 = self.val_net(base_net, val_data, len_vd)
 
-            # 存储参数
-            cp_dir = os.path.join(DATA_DIR, 'checkpoints')
-            mkdir_if_not_exist(cp_dir)
-            epoch_params = os.path.join(cp_dir, 'epoch-{}-{:.2f}-{}.params'.format(epoch, e_f1, get_current_time_str()))
-            base_net.save_params(epoch_params)
+            self.save_net_and_params(base_net, epoch, e_f1)  # 存储网络
 
 
 if __name__ == '__main__':
