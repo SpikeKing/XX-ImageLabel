@@ -75,7 +75,7 @@ class MultiLabelTrainer(object):
     @staticmethod
     def get_context(is_gpu):
         if is_gpu:
-            num_gpus = 3
+            num_gpus = 2
         else:
             num_gpus = -1
         ctx = [mx.gpu(i) for i in range(num_gpus)] if num_gpus > 0 else [mx.cpu()]
@@ -268,7 +268,7 @@ class MultiLabelTrainer(object):
             e_loss, e_r, e_p, e_f1 = 0, 0, 0, 0  # epoch
 
             for i, batch in enumerate(train_data):
-                
+
                 data, labels = batch[0], batch[1].astype('float32')
 
                 data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)
