@@ -282,5 +282,5 @@ class MultilabelDataset(dataset.Dataset):
         img = image.imread(self.items[idx][0], self._flag)
         label = self.items[idx][1]
         if self._transform is not None:
-            return self._transform(img, label)
+            img, label = self._transform(img), label
         return img, label
