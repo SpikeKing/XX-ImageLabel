@@ -9,7 +9,10 @@ import sys
 
 import mxnet as mx
 import numpy as np
-import matplotlib.pyplot as plt
+
+# import matplotlib
+# matplotlib.use('agg')
+# import matplotlib.pyplot as plt
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
@@ -458,8 +461,8 @@ class MultiLabelTrainer(object):
         ])
 
         img = transform_fn(img)
-        plt.imshow(nd.transpose(img, (1, 2, 0)).asnumpy())
-        plt.show()
+        # plt.imshow(nd.transpose(img, (1, 2, 0)).asnumpy())
+        # plt.show()
 
         img = nd.expand_dims(img, axis=0)
         res = net(img.as_in_context(self.ctx[0]))
