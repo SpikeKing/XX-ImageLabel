@@ -409,6 +409,7 @@ class MultiLabelTrainer(object):
                 data = split_and_load(data, ctx_list=self.ctx, batch_axis=0, even_split=False)
                 labels = split_and_load(labels, ctx_list=self.ctx, batch_axis=0, even_split=False)
                 data_loss = []
+
                 with autograd.record():  # 梯度求导
                     for X in data:
                         anchor_ins, pos_ins, neg_ins = [], [], []
@@ -426,8 +427,10 @@ class MultiLabelTrainer(object):
 
                         loss = triplet_loss(inter1, inter2, inter3)  # TripletLoss
                         data_loss.append(loss)
+
                 for l in data_loss:
                     l.backward()
+
                 curr_loss = np.mean([mx.nd.mean(loss).asscalar() for loss in data_loss])
                 self.print_info("batch: {}, loss: {}".format(i, curr_loss))
                 e_loss += curr_loss
