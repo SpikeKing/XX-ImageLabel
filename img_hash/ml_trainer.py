@@ -392,8 +392,8 @@ class MultiLabelTrainer(object):
         训练Triplet Loss模型
         :return: 当前模型
         """
-        net_path = os.path.join(DATA_DIR, 'model', 'epoch-3-0.48-20180920164709.params-symbol.json')
-        params_path = os.path.join(DATA_DIR, 'model', 'epoch-3-0.48-20180920164709.params-0003.params')
+        net_path = os.path.join(DATA_DIR, 'model', 'epoch-24-0.54-20180920182658.params-symbol.json')
+        params_path = os.path.join(DATA_DIR, 'model', 'epoch-24-0.54-20180920182658.params-0024.params')
 
         base_net = gluon.nn.SymbolBlock.imports(net_path, ['data'], params_path)
 
