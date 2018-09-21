@@ -48,7 +48,7 @@ class TripletDataset(dataset.Dataset):
         if not saved_path:
             self._create_pairs()  # 生成TP的数据对
         else:
-            self.np_saved = saved_path
+            self.np_saved = os.path.join(data_file + ".tp.npz")
             self._load_pairs()  # 加载pair组
 
     @staticmethod
