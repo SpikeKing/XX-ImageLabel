@@ -131,7 +131,7 @@ class TripletDataset(dataset.Dataset):
 
             if (i + 1) % 100 == 0:
                 self._print_info('tl count: {}'.format(i))
-                break
+                # break
 
         elapsed_time = time.time() - start_time
         self._print_info('耗时: {:.2f} 秒'.format(elapsed_time))
