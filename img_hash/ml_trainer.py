@@ -141,7 +141,7 @@ class MultiLabelTrainer(object):
         ])
 
         td = TripletDataset(data_folder=self.train_folder, data_file=self.train_file,
-                            transform=transform_train)
+                            transform=transform_train, saved_path=True)
         train_data = DataLoader(dataset=td, batch_size=batch_size, shuffle=True)
 
         return train_data, len(td)
@@ -175,7 +175,7 @@ class MultiLabelTrainer(object):
         ])
 
         td = TripletDataset(data_folder=self.val_folder, data_file=self.val_file,
-                            transform=transform_val)
+                            transform=transform_val, saved_path=True)
         val_data = DataLoader(dataset=td, batch_size=batch_size, shuffle=True)
 
         return val_data, len(td)
