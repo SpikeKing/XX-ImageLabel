@@ -14,12 +14,14 @@ from tensorflow.contrib.gan.python.eval import preprocess_image
 
 from img_hash.ml_trainer import MultiLabelTrainer
 from utils.project_utils import *
+from keras import backend as K
 
 
 def main():
     # sym, arg_params, aux_params = mx.model.load_checkpoint("base_net", 0)
     # net.load_parameters('testnet.params')
     save_img()
+    K.function()
     pass
 
 
