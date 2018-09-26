@@ -9,7 +9,7 @@ from root_dir import ROOT_DIR
 
 class ImageHash(object):
     def __init__(self):
-        gpus = None
+        gpus = '0,1,2,3'
         model_root_path = os.path.join(ROOT_DIR, 'img_hash', 'xu_pkg', 'models')
 
         self.hashing_infer = MeipaiRetrival()
