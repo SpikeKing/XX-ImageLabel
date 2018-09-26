@@ -57,8 +57,8 @@ def process_data():
         bin_list.append(oz_arr)
         name_list.append(name)
         label_list.append(label)
-        if count % 1000 == 0:
-            print(count)
+        if count == 1000:
+            break
 
     out_path = os.path.join(DATA_DIR, 'train.bin.npz')
     np.savez(out_path, b_list=bin_list, n_list=name_list,
