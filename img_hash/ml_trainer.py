@@ -394,9 +394,14 @@ class MultiLabelTrainer(object):
         """
         net_path = os.path.join(DATA_DIR, 'model', 'epoch-24-0.54-20180920182658.params-symbol.json')
         params_path = os.path.join(DATA_DIR, 'model', 'epoch-24-0.54-20180920182658.params-0024.params')
+        hash_num = 128
 
         base_net = gluon.nn.SymbolBlock.imports(net_path, ['data'], params_path)
+        with base_net.name_scope():
+            base_net.output = Dense(units=hash_num)  # 全连接层
+        base_net.output.initialize(Xavier(), ctx=self.ctx)  # 初始化
         base_net.collect_params().reset_ctx(self.ctx)
+        base_net.hybridize()
 
         train_data, train_len = self.get_tl_train_data(self.batch_size)
         val_data, val_len = self.get_tl_val_data(self.batch_size)
@@ -454,6 +459,9 @@ class MultiLabelTrainer(object):
         im_path = os.path.join(DATA_DIR, 'imgs_data', 'd4YE10xHdvbwKJV5yBYsoJJke6K9b.jpg')
         img = image.imread(im_path)
 
+        # plt.imshow(img.asnumpy())
+        # plt.show()
+
         transform_fn = transforms.Compose([
             transforms.Resize(224, keep_ratio=True),
             transforms.CenterCrop(224),
@@ -462,8 +470,6 @@ class MultiLabelTrainer(object):
         ])
 
         img = transform_fn(img)
-        # plt.imshow(nd.transpose(img, (1, 2, 0)).asnumpy())
-        # plt.show()
 
         img = nd.expand_dims(img, axis=0)
         res = net(img.as_in_context(self.ctx[0]))
