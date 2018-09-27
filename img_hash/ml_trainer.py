@@ -397,9 +397,9 @@ class MultiLabelTrainer(object):
         hash_num = 128
 
         base_net = gluon.nn.SymbolBlock.imports(net_path, ['data'], params_path)
-        with base_net.name_scope():
-            base_net.output = Dense(units=hash_num)  # 全连接层
-        base_net.output.initialize(Xavier(), ctx=self.ctx)  # 初始化
+        # with base_net.name_scope():
+        #     base_net.output = Dense(units=hash_num)  # 全连接层
+        # base_net.output.initialize(Xavier(), ctx=self.ctx)  # 初始化
         base_net.collect_params().reset_ctx(self.ctx)
 
         train_data, train_len = self.get_tl_train_data(self.batch_size)
