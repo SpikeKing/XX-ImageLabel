@@ -396,11 +396,13 @@ class MultiLabelTrainer(object):
         params_path = os.path.join(DATA_DIR, 'model', 'epoch-24-0.54-20180920182658.params-0024.params')
         hash_num = 128
 
-        base_net = gluon.nn.SymbolBlock.imports(net_path, ['data'], params_path)
-        # with base_net.name_scope():
-        #     base_net.output = Dense(units=hash_num)  # 全连接层
-        # base_net.output.initialize(Xavier(), ctx=self.ctx)  # 初始化
+        # base_net = gluon.nn.SymbolBlock.imports(net_path, ['data'], params_path)
+        base_net = self.get_base_net()
+        with base_net.name_scope():
+            base_net.output = Dense(units=hash_num)  # 全连接层
+        base_net.output.initialize(Xavier(), ctx=self.ctx)  # 初始化
         base_net.collect_params().reset_ctx(self.ctx)
+        base_net.hybridize()
 
         train_data, train_len = self.get_tl_train_data(self.batch_size)
         val_data, val_len = self.get_tl_val_data(self.batch_size)
