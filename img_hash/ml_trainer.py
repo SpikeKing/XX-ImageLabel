@@ -401,7 +401,6 @@ class MultiLabelTrainer(object):
             base_net.output = Dense(units=hash_num)  # 全连接层
         base_net.output.initialize(Xavier(), ctx=self.ctx)  # 初始化
         base_net.collect_params().reset_ctx(self.ctx)
-        base_net.hybridize()
 
         train_data, train_len = self.get_tl_train_data(self.batch_size)
         val_data, val_len = self.get_tl_val_data(self.batch_size)
