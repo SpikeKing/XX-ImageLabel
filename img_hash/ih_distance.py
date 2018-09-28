@@ -33,7 +33,7 @@ def distance_ab(a, b):
     return res
 
 
-def distance(out_folder, data_set, bin_data, name):
+def distance(out_folder, data_set, bin_data, file_name):
     bin_list, name_list, data_list, label_list = data_set
 
     up_folder = os.path.abspath(os.path.join(ROOT_DIR, '..'))
@@ -72,7 +72,7 @@ def distance(out_folder, data_set, bin_data, name):
         y_offset += 416
         x_offset = 0
 
-    new_im.save(os.path.join(out_folder, name + '.res.jpg'))
+    new_im.save(os.path.join(out_folder, file_name + '.res.jpg'))
 
 
 def main():
@@ -81,6 +81,7 @@ def main():
     data_set = load_data()
     bin_list, name_list, data_list, label_list = data_set
     for count, (bin_data, name_data) in enumerate(zip(bin_list, name_list)):
+        print('name: {}'.format(name_data))
         distance(out_folder, data_set, bin_data, name_data)
         if count % 100 == 0:
             print(count)
