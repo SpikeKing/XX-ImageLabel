@@ -58,7 +58,7 @@ def process_data():
         oz_arr, res_data = mlp.detect_img_to_hash(path)
 
         label = name_labels_dict[name]
-        # oz_bin = np.apply_along_axis(to_binary, axis=0, arr=oz_arr)
+        # oz_bin =cd np.apply_along_axis(to_binary, axis=0, arr=oz_arr)
         data_list.append(res_data)
         bin_list.append(oz_arr)
         name_list.append(name)
