@@ -23,9 +23,9 @@ class MLPredictor(object):
         self.net_path_cl = os.path.join(DATA_DIR, 'model', 'epoch-99-0.50-20180921002904.params-symbol.json')
         self.params_path_cl = os.path.join(DATA_DIR, 'model', 'epoch-99-0.50-20180921002904.params-0099.params')
         self.net_path_tl = os.path.join(
-            DATA_DIR, 'model', 'tripletloss-epoch-99-0.74-20180922195150.params-symbol.json')
+            DATA_DIR, 'model', 'tripletloss-epoch-72-0.72-20180928100153.params-symbol.json')
         self.params_path_tl = os.path.join(
-            DATA_DIR, 'model', 'tripletloss-epoch-99-0.74-20180922195150.params-0099.params')
+            DATA_DIR, 'model', 'tripletloss-epoch-72-0.72-20180928100153.params-0072.params')
         self.net_cl, self.net_tl = self.load_net()
         self.ctx = mx.cpu()
 
@@ -69,12 +69,14 @@ class MLPredictor(object):
 
         img = transform_fn(img)
         img = nd.expand_dims(img, axis=0)
-        res = self.net_tl(img.as_in_context(self.ctx)).asnumpy()
+        res = self.net_tl(img.as_in_context(self.ctx))
+        res = sigmoid(res).asnumpy()
         return res
 
-    # def detect_img_to_hash(self, img_path):
-    #     detect_img_to_vector()
-    #     return res
+    def detect_img_to_hash(self, img_path):
+        vector = self.detect_img_to_vector(img_path)
+        v_hash = np.where(vector > 0.5, 1, 0).astype(int)
+        return v_hash, vector
 
 
 def test_of_MLPredictor():
@@ -87,6 +89,9 @@ def test_of_MLPredictor():
 
     vectors = mlp.detect_img_to_vector(img_path)
     print('相似向量: {}'.format(vectors))
+
+    v_hash, vector = mlp.detect_img_to_hash(img_path)
+    print('相似向量: {}'.format(hash))
 
 
 def main():

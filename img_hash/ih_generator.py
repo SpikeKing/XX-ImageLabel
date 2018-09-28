@@ -12,6 +12,7 @@ p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if p not in sys.path:
     sys.path.append(p)
 
+from img_hash.multi_label_api import MLPredictor
 from img_hash.dir_const import DATA_DIR
 from img_hash.xu_pkg.im_hash_api import ImageHash
 from root_dir import ROOT_DIR
@@ -42,15 +43,20 @@ def process_data():
     pathes, names = traverse_dir_files(train_folder)
 
     ih = ImageHash()
+    mlp = MLPredictor()
+
     name_list = []
     label_list = []
     bin_list = []
     data_list = []
     print('数据量: {}'.format(len(names)))
     for count, (path, name) in enumerate(zip(pathes, names)):
-        res = ih.predict(path)
-        cls_id, res_data = res  # 类别和数据
-        oz_arr = np.where(res_data >= 0.5, 1.0, 0.0).astype(int)
+        # res = ih.predict(path)
+        # cls_id, res_data = res  # 类别和数据
+        # oz_arr = np.where(res_data >= 0.5, 1.0, 0.0).astype(int)
+
+        oz_arr, res_data = mlp.detect_img_to_hash(path)
+
         label = name_labels_dict[name]
         # oz_bin = np.apply_along_axis(to_binary, axis=0, arr=oz_arr)
         data_list.append(res_data)
@@ -60,13 +66,13 @@ def process_data():
         if count == 1000:
             break
 
-    out_path = os.path.join(DATA_DIR, 'train.bin.npz')
+    out_path = os.path.join(DATA_DIR, 'tr_train.bin.npz')
     np.savez(out_path, b_list=bin_list, n_list=name_list,
              l_list=label_list, d_list=data_list)
 
 
 def read_data():
-    out_path = os.path.join(DATA_DIR, 'train.bin.npz')
+    out_path = os.path.join(DATA_DIR, 'tr_train.bin.npz')
     bin_data = np.load(out_path)
     bin_list = bin_data['b_list']
     name_list = bin_data['n_list']

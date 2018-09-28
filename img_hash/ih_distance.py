@@ -14,7 +14,7 @@ from utils.project_utils import *
 
 
 def load_data():
-    out_path = os.path.join(DATA_DIR, 'train.bin.npz')
+    out_path = os.path.join(DATA_DIR, 'tr_train.bin.npz')
     bin_data = np.load(out_path)
     bin_list = bin_data['b_list']
     name_list = bin_data['n_list']
