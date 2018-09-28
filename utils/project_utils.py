@@ -22,8 +22,6 @@ from datetime import timedelta, datetime
 # sys.setdefaultencoding('utf8')  # 避免编码错误
 from itertools import chain
 
-from werkzeug._compat import izip
-
 p = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 if p not in sys.path:
     sys.path.append(p)
@@ -536,20 +534,6 @@ def list_2_utf8(obj):
     :return:
     """
     return json.dumps(obj, encoding="UTF-8", ensure_ascii=False)
-
-
-def grouped_list(iterable, n):
-    """
-    "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
-    例子:
-    for x, y in grouped(l, 2):
-        print "%d + %d = %d" % (x, y, x + y)
-
-    :param iterable: 迭代器
-    :param n: 间隔
-    :return: 组合
-    """
-    return izip(*[iter(iterable)] * n)
 
 
 def listdir_no_hidden(root_dir):
