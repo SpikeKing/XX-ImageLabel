@@ -8,6 +8,10 @@ import os
 import numpy as np
 from PIL import Image
 
+p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if p not in sys.path:
+    sys.path.append(p)
+
 from img_hash.dir_const import DATA_DIR
 from root_dir import ROOT_DIR
 from utils.project_utils import *
