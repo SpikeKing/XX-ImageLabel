@@ -82,7 +82,7 @@ def main():
     bin_list, name_list, data_list, label_list = data_set
     for count, (bin_data, name_data) in enumerate(zip(bin_list, name_list)):
         distance(out_folder, data_set, bin_data, name_data)
-        if count % 500 == 0:
+        if count % 100 == 0:
             print(count)
 
 
