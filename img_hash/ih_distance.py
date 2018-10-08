@@ -18,8 +18,10 @@ from root_dir import ROOT_DIR
 from utils.project_utils import *
 
 
-def load_data():
-    out_path = os.path.join(DATA_DIR, 'train.bin.npz')
+def load_data(name):
+    out_path = os.path.join(DATA_DIR, name)
+    # out_path = os.path.join(DATA_DIR, 'tr_cls9_68_XX.bin.npz')
+    # out_path = os.path.join(DATA_DIR, 'tr_train.bin.npz')
     bin_data = np.load(out_path)
     bin_list = bin_data['b_list']
     name_list = bin_data['n_list']
@@ -54,7 +56,7 @@ def distance(out_folder, data_set, bin_data, file_name):
     image_ths = 12
     img_w, img_h = 4, 3
     for i, (count, dist) in enumerate(count_dist_list):
-        name = name_list[count]
+        name = unicode_str(name_list[count])
         path_list.append(name_path_dict[name])
         if i == image_ths:
             break
@@ -78,13 +80,26 @@ def distance(out_folder, data_set, bin_data, file_name):
 def main():
     out_folder = os.path.join(DATA_DIR, 'im_hash_res')
     mkdir_if_not_exist(out_folder, is_delete=True)
-    data_set = load_data()
-    bin_list, name_list, data_list, label_list = data_set
-    for count, (bin_data, name_data) in enumerate(zip(bin_list, name_list)):
+    data_set_x = load_data('train.bin.npz')
+    data_set_w = load_data('tr_train.bin.npz')
+    data_set_z = load_data('tr_cls9_68_XX.bin.npz')
+    bin_list_x, name_list_x, data_list, label_list = data_set_x
+    bin_list_w, name_list_w, data_list, label_list = data_set_w
+    bin_list_z, name_list_z, data_list, label_list = data_set_z
+
+    for count in range(len(name_list_x)):
+        print(name_list_x[count], name_list_w[count], name_list_z[count])
+        name_data = name_list_x[count]
+        bin_data_x, bin_data_w, bin_data_z = bin_list_x[count], bin_list_w[count], bin_list_z[count]
+        name_data = unicode_str(name_data)
         print('name: {}'.format(name_data))
-        distance(out_folder, data_set, bin_data, name_data)
+        distance(out_folder, data_set_x, bin_data_x, name_data+".mp")
+        distance(out_folder, data_set_w, bin_data_w, name_data+".or")
+        distance(out_folder, data_set_z, bin_data_z, name_data+".la")
         if count % 100 == 0:
             print(count)
+        if count == 500:
+            break
 
 
 if __name__ == '__main__':

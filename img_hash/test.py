@@ -7,23 +7,23 @@ Created by C. L. Wang on 2018/9/18
 import json
 
 import mxnet as mx
-from keras_preprocessing.image import save_img
 
 from mxnet import gluon
-from tensorflow.contrib.gan.python.eval import preprocess_image
+from mxnet.gluon.model_zoo.vision import get_model
+from mxnet.gluon.nn import Dense
+from mxnet.initializer import Xavier
 
 from img_hash.ml_trainer import MultiLabelTrainer
 from utils.project_utils import *
-from keras import backend as K
 
 
 def main():
-    # sym, arg_params, aux_params = mx.model.load_checkpoint("base_net", 0)
-    # net.load_parameters('testnet.params')
-    save_img()
-    K.function()
-    pass
-
+    base_net = get_model('mobilenet1.0', pretrained=True)
+    base_net.features = base_net.features[62:64]
+    base_net.features.add(Dense(units=128))
+    print(base_net.features)
+    base_net.features[-1].initialize(Xavier(), ctx=mx.cpu(0))  # 初始化
+    base_net.collect_params().reset_ctx(mx.cpu(0))
 
 
 if __name__ == '__main__':

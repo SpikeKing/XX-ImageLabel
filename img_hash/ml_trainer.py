@@ -21,14 +21,14 @@ if p not in sys.path:
 from configparser import ConfigParser
 from utils.project_utils import *
 
-from mxnet import autograd, gluon, symbol, image, nd
+from mxnet import autograd, gluon, image, nd
 from mxnet.gluon.utils import split_and_load
 from mxnet.gluon import Trainer
 from mxnet.gluon.data import DataLoader
 from mxnet.gluon.data.vision import transforms
 from mxnet.gluon.loss import SigmoidBinaryCrossEntropyLoss
 from mxnet.gluon.model_zoo.vision import get_model
-from mxnet.gluon.nn import Dense, SymbolBlock
+from mxnet.gluon.nn import Dense
 from mxnet.initializer import Xavier
 from mxnet.ndarray import sigmoid
 
@@ -281,7 +281,7 @@ class MultiLabelTrainer(object):
         mkdir_if_not_exist(cp_dir)
         epoch_params = os.path.join(
             cp_dir,
-            '{}-epoch-{}-{:.2f}-{}.params'.format(name, epoch, value, get_current_time_str()))
+            '{}-epoch-{}-{:.2f}-{}'.format(name, epoch, value, get_current_time_str()))
         net.export(epoch_params, epoch=epoch)
 
     def train_model_for_ml(self):
