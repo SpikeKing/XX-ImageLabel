@@ -105,14 +105,14 @@ def read_all_csv(file_name):
 
 
 def generate_mysql_data():
-    csv_name = os.path.join(TXT_DATA, 'hot_content-2018-09-12-15384621.csv')
+    csv_name = os.path.join(TXT_DATA, 'hot_content-2018-10-19-1412236.csv')
     # csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.txt')
-    csv_output = os.path.join(TXT_DATA, 'test_data-2018-09-12.all.txt')
+    csv_output = os.path.join(TXT_DATA, 'test_data-2018-10-19.all.txt')
     create_file(csv_output)
     # lines = read_csv(csv_name)  # 地域标签
     lines = read_all_csv(csv_name)  # 全部标签
     for line in lines:
-        write_line(csv_output, unicode_str(line))
+        write_line_utf8(csv_output, unicode_str(line))
 
 
 def main():

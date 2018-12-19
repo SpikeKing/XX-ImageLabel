@@ -123,7 +123,7 @@ WORLD_CITY_LIST = {
 
 
 def get_all_cities():
-    all_city = CHN_CITY_LIST.keys() + WORLD_CITY_LIST.keys()
+    all_city = list(CHN_CITY_LIST.keys()) + list(WORLD_CITY_LIST.keys())
     for cities in CHN_CITY_LIST.values():
         for city in cities:
             all_city.append(city)
@@ -147,4 +147,4 @@ def init_city_keywords():
 
 
 if __name__ == '__main__':
-    init_city_keywords()
+    print(len(get_all_cities()))
